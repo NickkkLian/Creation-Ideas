@@ -1301,16 +1301,23 @@ function imgMime(filename) {
   return { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp' }[ext] || 'image/jpeg';
 }
 
-async function fetchImage(path) {
+async function fetchImage(path, _attempt = 0) {
   if (imageCache.has(path)) return imageCache.get(path);
   if (!hasSettings()) return null;
   const { token, owner, repo } = state.settings;
+  // Use raw path — 'images/file.jpg' is already a valid URL path segment.
+  // Do NOT encode the slash separator; only encode truly unsafe chars in the filename.
+  const safePath = path.split('/').map(seg => seg.replace(/[^a-zA-Z0-9._~:@!$&'()*+,;=%-]/g, encodeURIComponent)).join('/');
   try {
-    const encodedPath = path.split('/').map(encodeURIComponent).join('/');
-    const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + encodedPath, {
+    const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + safePath, {
       headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
     });
-    if (!r.ok) { console.warn('fetchImage: API returned', r.status, path); return null; }
+    // Retry once on transient server errors
+    if ((r.status >= 500 || r.status === 429) && _attempt < 2) {
+      await new Promise(res => setTimeout(res, 800 * (_attempt + 1)));
+      return fetchImage(path, _attempt + 1);
+    }
+    if (!r.ok) { console.warn('fetchImage failed:', r.status, path); return null; }
     const json = await r.json();
     let dataUrl;
     if (json.content) {
@@ -1318,7 +1325,7 @@ async function fetchImage(path) {
       const b64 = json.content.replace(/[\n\r\s]/g, '');
       dataUrl = 'data:' + imgMime(path) + ';base64,' + b64;
     } else if (json.download_url) {
-      // File >1MB: fetch via temporary download URL
+      // File >1MB: fetch via temporary signed download URL
       const dlR = await fetch(json.download_url);
       if (!dlR.ok) return null;
       const blob = await dlR.blob();
@@ -1329,7 +1336,6 @@ async function fetchImage(path) {
         reader.readAsDataURL(blob);
       });
     } else {
-      console.warn('fetchImage: no content or download_url', path);
       return null;
     }
     imageCache.set(path, dataUrl);
@@ -1339,14 +1345,15 @@ async function fetchImage(path) {
 
 async function uploadImage(file) {
   const { token, owner, repo } = state.settings;
-  const safeFilename = file.name.replace(/[^a-zA-Z0-9._\u4e00-\u9fa5-]/g, '_');
+  // ASCII-only: strip all non-ASCII so the path never needs percent-encoding
+  const safeFilename = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/^_+|_+$/g, '') || 'image';
   const path = 'images/' + Date.now() + '_' + safeFilename;
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = async () => {
       const base64 = reader.result.split(',')[1];
       try {
-        const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + path.split('/').map(encodeURIComponent).join('/'), {
+        const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + path, {
           method: 'PUT',
           headers: {
             'Authorization': 'Bearer ' + token,
