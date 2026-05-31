@@ -1450,10 +1450,18 @@ async function downloadFile(path, name, btnEl) {
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
       blob = new Blob([bytes]);
-    } else if (json.download_url) {
-      const dlR = await fetch(json.download_url);
-      if (!dlR.ok) throw new Error('下载失败');
-      blob = await dlR.blob();
+    } else if (json.sha) {
+      // >1MB: use Git Blobs API
+      const blobR = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/git/blobs/' + json.sha, {
+        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (!blobR.ok) throw new Error('文件过大或不可访问');
+      const blobJson = await blobR.json();
+      const b64 = blobJson.content.replace(/[\n\r\s]/g, '');
+      const binary = atob(b64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      blob = new Blob([bytes]);
     } else { throw new Error('文件不可访问'); }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1478,46 +1486,79 @@ function imgMime(filename) {
   return { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp' }[ext] || 'image/jpeg';
 }
 
-async function fetchImage(path, _attempt = 0) {
-  if (imageCache.has(path)) return imageCache.get(path);
-  if (!hasSettings()) return null;
+// fetchImageResult returns { dataUrl, error } so callers know WHY it failed
+async function fetchImageResult(path, _attempt = 0) {
+  if (!hasSettings()) return { dataUrl: null, error: '未配置 GitHub' };
   const { token, owner, repo } = state.settings;
-  // Use raw path — 'images/file.jpg' is already a valid URL path segment.
-  // Do NOT encode the slash separator; only encode truly unsafe chars in the filename.
-  const safePath = path.split('/').map(seg => seg.replace(/[^a-zA-Z0-9._~:@!$&'()*+,;=%-]/g, encodeURIComponent)).join('/');
-  try {
-    const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + safePath, {
-      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
-    });
-    // Retry once on transient server errors
-    if ((r.status >= 500 || r.status === 429) && _attempt < 2) {
-      await new Promise(res => setTimeout(res, 800 * (_attempt + 1)));
-      return fetchImage(path, _attempt + 1);
-    }
-    if (!r.ok) { console.warn('fetchImage failed:', r.status, path); return null; }
-    const json = await r.json();
-    let dataUrl;
-    if (json.content) {
-      // File ≤1MB: base64 content inline
-      const b64 = json.content.replace(/[\n\r\s]/g, '');
-      dataUrl = 'data:' + imgMime(path) + ';base64,' + b64;
-    } else if (json.download_url) {
-      // File >1MB: fetch via temporary signed download URL
-      const dlR = await fetch(json.download_url);
-      if (!dlR.ok) return null;
-      const blob = await dlR.blob();
-      dataUrl = await new Promise((res, rej) => {
-        const reader = new FileReader();
-        reader.onload = () => res(reader.result);
-        reader.onerror = rej;
-        reader.readAsDataURL(blob);
+  // Try three path variants in order:
+  //  1. raw path (works for ASCII filenames uploaded with new code)
+  //  2. each segment percent-encoded (handles non-ASCII in filenames)
+  //  3. whole path encoded with %2F (legacy: uploaded with old encodeURIComponent code)
+  const variants = [
+    path,
+    path.split('/').map(s => encodeURIComponent(s)).join('/'),
+    encodeURIComponent(path)
+  ];
+  // Deduplicate variants that are identical
+  const tried = new Set();
+  for (const variant of variants) {
+    if (tried.has(variant)) continue;
+    tried.add(variant);
+    try {
+      const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + variant, {
+        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
       });
-    } else {
-      return null;
+      if (r.status >= 500 || r.status === 429) {
+        if (_attempt < 2) {
+          await new Promise(res => setTimeout(res, 800 * (_attempt + 1)));
+          return fetchImageResult(path, _attempt + 1);
+        }
+        return { dataUrl: null, error: 'GitHub 服务器暂时不可用 (' + r.status + ')' };
+      }
+      if (r.status === 404) continue; // try next variant
+      if (r.status === 403) return { dataUrl: null, error: 'Token 权限不足 (403)' };
+      if (!r.ok) return { dataUrl: null, error: 'API 错误 (' + r.status + ')' };
+      const json = await r.json();
+      let dataUrl;
+      if (json.content) {
+        const b64 = json.content.replace(/[\n\r\s]/g, '');
+        dataUrl = 'data:' + imgMime(path) + ';base64,' + b64;
+      } else if (json.sha) {
+        // >1MB: GitHub Contents API returns content:null for large files.
+        // Use Git Blobs API with the file's SHA — works for private repos, up to 100MB.
+        const blobR = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/git/blobs/' + json.sha, {
+          headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (!blobR.ok) return { dataUrl: null, error: 'Blobs API 失败 (' + blobR.status + ')，文件可能超过 100MB' };
+        const blobJson = await blobR.json();
+        const b64 = blobJson.content.replace(/[\n\r\s]/g, '');
+        dataUrl = 'data:' + imgMime(path) + ';base64,' + b64;
+      } else {
+        return { dataUrl: null, error: '文件内容不可访问（无 SHA）' };
+      }
+      return { dataUrl, error: null };
+    } catch(e) {
+      console.error('fetchImage variant error:', variant, e);
     }
-    imageCache.set(path, dataUrl);
-    return dataUrl;
-  } catch(e) { console.error('fetchImage error:', path, e); return null; }
+  }
+  return { dataUrl: null, error: '文件不存在（路径: ' + path + '）' };
+}
+
+async function blobToDataUrl(blob) {
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload = () => res(reader.result);
+    reader.onerror = rej;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function fetchImage(path) {
+  if (imageCache.has(path)) return imageCache.get(path);
+  const { dataUrl, error } = await fetchImageResult(path);
+  if (dataUrl) imageCache.set(path, dataUrl);
+  if (error) console.warn('fetchImage failed for', path, ':', error);
+  return dataUrl;
 }
 
 async function uploadImage(file) {
@@ -1858,16 +1899,44 @@ function openDetail(id, stage) {
 
   // load image async
   if (item.image) {
-    fetchImage(item.image).then(dataUrl => {
+    const _imgPath = item.image;
+    fetchImageResult(_imgPath).then(({ dataUrl, error }) => {
       const el = document.getElementById('detail-img-el');
       if (!el) return;
       if (dataUrl) {
+        imageCache.set(_imgPath, dataUrl);
         el.src = dataUrl;
       } else {
-        el.parentElement.innerHTML = '<div style="padding:14px 0;color:var(--text3);font-size:0.82rem;font-style:italic">图片加载失败（文件可能过大或路径有误）</div>';
+        el.parentElement.innerHTML =
+          '<div style="padding:12px;background:var(--bg3);border-radius:6px">' +
+          '<div style="color:var(--accent2);font-size:0.85rem;margin-bottom:6px">⚠ 图片加载失败</div>' +
+          '<div style="color:var(--text3);font-size:0.75rem;font-family:Courier Prime,monospace;margin-bottom:10px;word-break:break-all">' + escHtml(error || '') + '</div>' +
+          '<button class="btn btn-secondary" style="font-size:0.82rem;padding:4px 12px" onclick="retryDetailImage(' + "'" + escHtml(_imgPath) + "'" + ')">↻ 重试</button>' +
+          '</div>';
       }
     });
   }
+}
+
+function retryDetailImage(path) {
+  imageCache.delete(path);
+  const wrap = document.querySelector('.detail-img-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<img class="detail-img" id="detail-img-el" src="" alt="图片">';
+  fetchImageResult(path).then(({ dataUrl, error }) => {
+    const el = document.getElementById('detail-img-el');
+    if (!el) return;
+    if (dataUrl) {
+      imageCache.set(path, dataUrl);
+      el.src = dataUrl;
+    } else {
+      wrap.innerHTML =
+        '<div style="padding:12px;background:var(--bg3);border-radius:6px">' +
+        '<div style="color:var(--accent2);font-size:0.85rem;margin-bottom:6px">⚠ 仍然失败</div>' +
+        '<div style="color:var(--text3);font-size:0.75rem;font-family:Courier Prime,monospace;word-break:break-all">' + escHtml(error || '') + '</div>' +
+        '</div>';
+    }
+  });
 }
 
 function getStageDataOf(cat, sub, stage) {
