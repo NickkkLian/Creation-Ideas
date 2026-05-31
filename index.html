@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>创意想法库</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0c0a;
+  --bg2: #161410;
+  --bg3: #1e1b17;
+  --bg4: #262219;
+  --border: #2e2920;
+  --border2: #3a3428;
+  --text: #e8dfc8;
+  --text2: #b0a890;
+  --text3: #7a7060;
+  --accent: #c4392a;
+  --accent2: #e04535;
+  --accent3: #f5a623;
+  --green: #2e7d4f;
+  --green2: #3d9e66;
+  --blue: #2a5580;
+  --blue2: #3a72a8;
+  --stage-idea-bg: #151e13;
+  --stage-wip-bg: #1e1810;
+  --stage-done-bg: #101620;
+  --stage-idea-border: #2a3d25;
+  --stage-wip-border: #3d2e18;
+  --stage-done-border: #1e3050;
+  --tag-bg: #2a2420;
+  --tag-text: #c8b898;
+  --radius: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 15px; }
+
+body {
+  font-family: 'EB Garamond', Georgia, serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Subtle texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* HEADER */
+#header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(14,12,10,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 56px;
+}
+
+#header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+#header h1 span { color: var(--accent); }
+
+.header-spacer { flex: 1; }
+
+#sync-status {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s;
+}
+#sync-status.idle { background: var(--bg3); color: var(--text3); }
+#sync-status.syncing { background: #1a2e1a; color: var(--green2); }
+#sync-status.success { background: #1a2e1a; color: var(--green2); }
+#sync-status.error { background: #2e1a1a; color: var(--accent2); }
+#sync-status.unsaved { background: #2e2510; color: var(--accent3); }
+
+.sync-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+#sync-status.syncing .sync-dot {
+  animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+.header-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: 'EB Garamond', serif;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.header-btn:hover { background: var(--bg4); color: var(--text); border-color: var(--text3); }
+.header-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.header-btn.primary:hover { background: var(--accent2); }
+
+/* CATEGORY NAV */
+#cat-nav {
+  display: flex;
+  gap: 4px;
+  padding: 12px 24px 0;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 10;
+  background: var(--bg2);
+}
+
+.cat-tab {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-bottom: none;
+  color: var(--text3);
+  background: transparent;
+  transition: all 0.2s;
+  position: relative;
+  bottom: -1px;
+}
+.cat-tab:hover { color: var(--text2); background: var(--bg3); }
+.cat-tab.active {
+  color: var(--text);
+  background: var(--bg);
+  border-color: var(--border);
+  border-bottom-color: var(--bg);
+}
+.cat-tab .cat-icon { margin-right: 6px; }
+
+/* SUB NAV */
+#sub-nav {
+  display: flex;
+  gap: 4px;
+  padding: 10px 24px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+
+.sub-tab {
+  font-family: 'EB Garamond', serif;
+  font-size: 0.9rem;
+  padding: 5px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  color: var(--text3);
+  background: transparent;
+  transition: all 0.2s;
+}
+.sub-tab:hover { color: var(--text2); border-color: var(--border2); }
+.sub-tab.active {
+  color: var(--text);
+  background: var(--bg3);
+  border-color: var(--border2);
+}
+
+/* STAGE COLUMNS */
+#stage-area {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 20px 24px 40px;
+  min-height: calc(100vh - 160px);
+  position: relative;
+  z-index: 1;
+}
+
+.stage-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 300px;
+}
+
+.stage-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  border: 1px solid;
+  border-bottom: none;
+  position: relative;
+}
+
+.stage-header.ideas { background: var(--stage-idea-bg); border-color: var(--stage-idea-border); }
+.stage-header.wip   { background: var(--stage-wip-bg);  border-color: var(--stage-wip-border); }
+.stage-header.done  { background: var(--stage-done-bg); border-color: var(--stage-done-border); }
+
+.stage-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  flex: 1;
+}
+.stage-header.ideas .stage-title { color: #7ab87a; }
+.stage-header.wip   .stage-title { color: #c8a060; }
+.stage-header.done  .stage-title { color: #6090c8; }
+
+.stage-count {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.75rem;
+  color: var(--text3);
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.stage-body {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid;
+  border-radius: 0 0 var(--radius) var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stage-body.ideas { background: var(--stage-idea-bg); border-color: var(--stage-idea-border); }
+.stage-body.wip   { background: var(--stage-wip-bg);  border-color: var(--stage-wip-border); }
+.stage-body.done  { background: var(--stage-done-bg); border-color: var(--stage-done-border); }
+
+/* ADD BUTTON */
+.add-btn {
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px dashed var(--border2);
+  border-radius: var(--radius);
+  color: var(--text3);
+  cursor: pointer;
+  font-family: 'EB Garamond', serif;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  text-align: center;
+}
+.add-btn:hover { background: var(--bg3); color: var(--text2); border-color: var(--text3); }
+
+/* CARDS */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  cursor: default;
+  transition: all 0.2s;
+  animation: cardIn 0.25s ease;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card:hover { border-color: var(--border2); box-shadow: 0 2px 16px rgba(0,0,0,0.4); }
+
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.card-content {
+  font-size: 0.88rem;
+  color: var(--text2);
+  line-height: 1.6;
+  margin-bottom: 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card-content.expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.tag {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.72rem;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  padding: 2px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--border2);
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.card-date {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.7rem;
+  color: var(--text3);
+  flex: 1;
+}
+
+.card-action {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'EB Garamond', serif;
+  font-size: 0.8rem;
+  transition: all 0.15s;
+}
+.card-action:hover { background: var(--bg3); color: var(--text2); border-color: var(--border2); }
+.card-action.danger:hover { background: #2e1010; color: var(--accent2); border-color: var(--accent); }
+.card-action.promote { color: var(--green); border-color: var(--green); }
+.card-action.promote:hover { background: #101e10; color: var(--green2); }
+.card-action.demote { color: var(--accent3); border-color: #5a4510; }
+.card-action.demote:hover { background: #1e1a0a; }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text3);
+  font-style: italic;
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+/* MODALS */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 560px;
+  animation: slideUp 0.25s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  flex: 1;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text3);
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.modal-close:hover { background: var(--bg3); color: var(--text); }
+
+.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+
+.form-label {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.78rem;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.form-input, .form-textarea {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 10px 14px;
+  font-family: 'EB Garamond', serif;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+.form-input:focus, .form-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.form-textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+.form-input::placeholder, .form-textarea::placeholder { color: var(--text3); opacity: 0.6; }
+
+.form-hint {
+  font-size: 0.8rem;
+  color: var(--text3);
+  font-style: italic;
+}
+
+.stage-select {
+  display: flex;
+  gap: 8px;
+}
+.stage-opt {
+  flex: 1;
+  padding: 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--bg);
+  color: var(--text2);
+  cursor: pointer;
+  font-family: 'EB Garamond', serif;
+  font-size: 0.88rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+.stage-opt.active-idea { background: var(--stage-idea-bg); border-color: var(--stage-idea-border); color: #7ab87a; }
+.stage-opt.active-wip  { background: var(--stage-wip-bg);  border-color: var(--stage-wip-border);  color: #c8a060; }
+.stage-opt.active-done { background: var(--stage-done-bg); border-color: var(--stage-done-border); color: #6090c8; }
+
+.modal-footer {
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 8px 20px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: 'EB Garamond', serif;
+  font-size: 0.95rem;
+  border: 1px solid;
+  transition: all 0.2s;
+}
+.btn-secondary { background: var(--bg3); border-color: var(--border2); color: var(--text2); }
+.btn-secondary:hover { background: var(--bg4); color: var(--text); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-danger { background: #2e1010; border-color: var(--accent); color: var(--accent2); }
+.btn-danger:hover { background: var(--accent); color: #fff; }
+
+/* Settings warning */
+.settings-warning {
+  background: #2e1a0a;
+  border: 1px solid #5a3a18;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  color: #c89050;
+  line-height: 1.6;
+}
+
+/* Error/info messages */
+.msg {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+.msg-error { background: #2e1010; border: 1px solid #5a2020; color: #e06060; }
+.msg-success { background: #102010; border: 1px solid #205020; color: #60a060; }
+
+/* Setup notice */
+#setup-notice {
+  margin: 40px auto;
+  max-width: 480px;
+  text-align: center;
+  padding: 40px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+}
+#setup-notice h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  margin-bottom: 12px;
+}
+#setup-notice p {
+  color: var(--text2);
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* Divider ornament */
+.ornament {
+  text-align: center;
+  color: var(--text3);
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  opacity: 0.5;
+}
+
+/* Confirm dialog */
+.confirm-modal { max-width: 380px; }
+.confirm-text {
+  font-size: 1rem;
+  color: var(--text2);
+  line-height: 1.7;
+  padding: 20px 24px;
+}
+
+/* README instructions (hidden, for reference) */
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="header">
+  <h1>✦ 创意<span>想法库</span></h1>
+  <div class="header-spacer"></div>
+  <div id="sync-status" class="idle">
+    <div class="sync-dot"></div>
+    <span id="sync-text">未配置</span>
+  </div>
+  <button class="header-btn" onclick="manualSync()" id="sync-btn">⟳ 同步</button>
+  <button class="header-btn" onclick="showSettings()">⚙ 设置</button>
+</header>
+
+<!-- CATEGORY NAV -->
+<nav id="cat-nav">
+  <button class="cat-tab active" onclick="setCategory('mystery')" id="cat-mystery">
+    <span class="cat-icon">🔍</span>推理类
+  </button>
+  <button class="cat-tab" onclick="setCategory('music')" id="cat-music">
+    <span class="cat-icon">🎵</span>音乐类
+  </button>
+  <button class="cat-tab" onclick="setCategory('literature')" id="cat-literature">
+    <span class="cat-icon">📖</span>文学类
+  </button>
+</nav>
+
+<!-- SUB NAV -->
+<nav id="sub-nav"></nav>
+
+<!-- STAGE AREA -->
+<main id="stage-area">
+  <div class="stage-col" id="col-ideas">
+    <div class="stage-header ideas">
+      <span class="stage-title">💡 想法区</span>
+      <span class="stage-count" id="count-ideas">0</span>
+    </div>
+    <div class="stage-body ideas" id="body-ideas">
+      <button class="add-btn" onclick="openAdd('ideas')">＋ 新增想法</button>
+    </div>
+  </div>
+  <div class="stage-col" id="col-wip">
+    <div class="stage-header wip">
+      <span class="stage-title">🔨 半成品区</span>
+      <span class="stage-count" id="count-wip">0</span>
+    </div>
+    <div class="stage-body wip" id="body-wip">
+      <button class="add-btn" onclick="openAdd('wip')">＋ 新增</button>
+    </div>
+  </div>
+  <div class="stage-col" id="col-done">
+    <div class="stage-header done">
+      <span class="stage-title">✨ 成品区</span>
+      <span class="stage-count" id="count-done">0</span>
+    </div>
+    <div class="stage-body done" id="body-done">
+      <button class="add-btn" onclick="openAdd('done')">＋ 新增</button>
+    </div>
+  </div>
+</main>
+
+<!-- MODALS (injected by JS) -->
+<div id="modal-root"></div>
+
+<script>
+// ============================================================
+// DATA MODEL
+// ============================================================
+const CATEGORIES = {
+  mystery: {
+    label: '推理类',
+    icon: '🔍',
+    subs: {
+      detective_novel: '推理小说',
+      murder_mystery: '剧本杀',
+      turtle_soup: '海龟汤'
+    }
+  },
+  music: {
+    label: '音乐类',
+    icon: '🎵',
+    subs: null // flat
+  },
+  literature: {
+    label: '文学类',
+    icon: '📖',
+    subs: {
+      essay: '散文',
+      popular_novel: '通俗小说',
+      poetry: '诗歌'
+    }
+  }
+};
+
+const STAGES = ['ideas', 'wip', 'done'];
+const STAGE_NAMES = { ideas: '想法区', wip: '半成品区', done: '成品区' };
+const GITHUB_API = 'https://api.github.com';
+
+function defaultData() {
+  const d = { _meta: { version: '1.0', last_updated: new Date().toISOString() } };
+  for (const [cat, info] of Object.entries(CATEGORIES)) {
+    if (info.subs) {
+      d[cat] = {};
+      for (const sub of Object.keys(info.subs)) {
+        d[cat][sub] = { ideas: [], wip: [], done: [] };
+      }
+    } else {
+      d[cat] = { ideas: [], wip: [], done: [] };
+    }
+  }
+  return d;
+}
+
+// App state
+let state = {
+  category: 'mystery',
+  subtype: 'detective_novel',
+  data: defaultData(),
+  sha: null,
+  settings: { token: '', owner: '', repo: '' },
+  syncTimer: null,
+  dirty: false
+};
+
+// ============================================================
+// SETTINGS (localStorage for deployed app)
+// ============================================================
+function loadSettings() {
+  try {
+    const s = localStorage.getItem('writing_settings');
+    if (s) state.settings = JSON.parse(s);
+  } catch(e) {}
+}
+function saveSettings() {
+  try { localStorage.setItem('writing_settings', JSON.stringify(state.settings)); } catch(e) {}
+}
+
+function hasSettings() {
+  return state.settings.token && state.settings.owner && state.settings.repo;
+}
+
+// ============================================================
+// GITHUB API
+// ============================================================
+function b64Encode(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function b64Decode(str) {
+  return decodeURIComponent(escape(atob(str.replace(/\n/g, ''))));
+}
+
+async function githubGet(path) {
+  const r = await fetch(`${GITHUB_API}${path}`, {
+    headers: {
+      'Authorization': `Bearer ${state.settings.token}`,
+      'Accept': 'application/vnd.github.v3+json'
+    }
+  });
+  return r;
+}
+
+async function githubPut(path, body) {
+  const r = await fetch(`${GITHUB_API}${path}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${state.settings.token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+  return r;
+}
+
+async function loadFromGitHub() {
+  if (!hasSettings()) return false;
+  setSyncStatus('syncing', '读取中...');
+  try {
+    const { owner, repo } = state.settings;
+    const r = await githubGet(`/repos/${owner}/${repo}/contents/writing.json`);
+    if (r.status === 404) {
+      // File doesn't exist, use default and create it
+      state.sha = null;
+      await saveToGitHub(true);
+      setSyncStatus('success', '已初始化');
+      setTimeout(() => setSyncStatus('idle', '已同步'), 2000);
+      return true;
+    }
+    if (!r.ok) {
+      const err = await r.json();
+      setSyncStatus('error', `读取失败: ${err.message || r.status}`);
+      return false;
+    }
+    const json = await r.json();
+    const parsed = JSON.parse(b64Decode(json.content));
+    state.data = mergeData(defaultData(), parsed);
+    state.sha = json.sha;
+    state.dirty = false;
+    setSyncStatus('success', '已同步');
+    setTimeout(() => setSyncStatus('idle', '已同步'), 2000);
+    return true;
+  } catch(e) {
+    setSyncStatus('error', '网络错误');
+    console.error(e);
+    return false;
+  }
+}
+
+function mergeData(defaults, loaded) {
+  // Deep merge to handle schema additions
+  const result = JSON.parse(JSON.stringify(defaults));
+  for (const key of Object.keys(loaded)) {
+    if (key === '_meta') { result._meta = loaded._meta; continue; }
+    if (result[key] && typeof result[key] === 'object') {
+      for (const sub of Object.keys(loaded[key])) {
+        if (result[key][sub] !== undefined) {
+          if (Array.isArray(result[key][sub])) {
+            result[key][sub] = loaded[key][sub] || [];
+          } else if (typeof result[key][sub] === 'object') {
+            for (const stage of STAGES) {
+              result[key][sub][stage] = (loaded[key][sub] && loaded[key][sub][stage]) || [];
+            }
+          }
+        }
+      }
+    }
+  }
+  return result;
+}
+
+async function saveToGitHub(silent) {
+  if (!hasSettings()) return false;
+  if (!silent) setSyncStatus('syncing', '保存中...');
+  try {
+    state.data._meta.last_updated = new Date().toISOString();
+    const content = b64Encode(JSON.stringify(state.data, null, 2));
+    const { owner, repo } = state.settings;
+    const body = {
+      message: `Update writing.json - ${new Date().toLocaleString('zh-CN')}`,
+      content,
+      ...(state.sha ? { sha: state.sha } : {})
+    };
+    const r = await githubPut(`/repos/${owner}/${repo}/contents/writing.json`, body);
+    if (!r.ok) {
+      const err = await r.json();
+      setSyncStatus('error', `保存失败: ${err.message || r.status}`);
+      return false;
+    }
+    const result = await r.json();
+    state.sha = result.content.sha;
+    state.dirty = false;
+    if (!silent) {
+      setSyncStatus('success', '已保存');
+      setTimeout(() => setSyncStatus('idle', '已同步'), 2000);
+    }
+    return true;
+  } catch(e) {
+    setSyncStatus('error', '保存失败');
+    console.error(e);
+    return false;
+  }
+}
+
+function scheduleSave() {
+  state.dirty = true;
+  setSyncStatus('unsaved', '未保存');
+  if (state.syncTimer) clearTimeout(state.syncTimer);
+  if (hasSettings()) {
+    state.syncTimer = setTimeout(() => saveToGitHub(false), 2000);
+  }
+}
+
+async function manualSync() {
+  if (!hasSettings()) { showSettings(); return; }
+  await loadFromGitHub();
+  renderAll();
+}
+
+// ============================================================
+// SYNC STATUS
+// ============================================================
+function setSyncStatus(type, text) {
+  const el = document.getElementById('sync-status');
+  const textEl = document.getElementById('sync-text');
+  el.className = type;
+  textEl.textContent = text;
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function setCategory(cat) {
+  state.category = cat;
+  const info = CATEGORIES[cat];
+  if (info.subs) {
+    state.subtype = Object.keys(info.subs)[0];
+  } else {
+    state.subtype = null;
+  }
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`cat-${cat}`).classList.add('active');
+  renderSubNav();
+  renderCards();
+}
+
+function setSubtype(sub) {
+  state.subtype = sub;
+  document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`sub-${sub}`).classList.add('active');
+  renderCards();
+}
+
+function renderSubNav() {
+  const nav = document.getElementById('sub-nav');
+  const info = CATEGORIES[state.category];
+  if (!info.subs) {
+    nav.innerHTML = '';
+    nav.style.display = 'none';
+    return;
+  }
+  nav.style.display = 'flex';
+  nav.innerHTML = Object.entries(info.subs).map(([key, label]) =>
+    `<button class="sub-tab${key === state.subtype ? ' active' : ''}" 
+      id="sub-${key}" onclick="setSubtype('${key}')">${label}</button>`
+  ).join('');
+}
+
+// ============================================================
+// RENDER CARDS
+// ============================================================
+function getStageData(stage) {
+  const cat = state.category;
+  const sub = state.subtype;
+  if (sub) return state.data[cat][sub][stage];
+  return state.data[cat][stage];
+}
+
+function renderCards() {
+  for (const stage of STAGES) {
+    const items = getStageData(stage);
+    const body = document.getElementById(`body-${stage}`);
+    const count = document.getElementById(`count-${stage}`);
+    count.textContent = items.length;
+
+    const addBtn = `<button class="add-btn" onclick="openAdd('${stage}')">＋ 新增${STAGE_NAMES[stage].replace('区','')}</button>`;
+
+    if (!items.length) {
+      body.innerHTML = addBtn + `<div class="empty-state">暂无内容<br>点击上方按钮添加</div>`;
+      return;
+    }
+
+    const cards = items.map(item => renderCard(item, stage)).join('');
+    body.innerHTML = addBtn + cards;
+  }
+}
+
+function renderAll() {
+  renderSubNav();
+  renderCards();
+}
+
+function renderCard(item, stage) {
+  const tagsHtml = (item.tags || []).map(t => `<span class="tag">${escHtml(t)}</span>`).join('');
+  const date = item.updated_at ? new Date(item.updated_at).toLocaleDateString('zh-CN') : '';
+  
+  const prevStage = STAGES[STAGES.indexOf(stage) - 1];
+  const nextStage = STAGES[STAGES.indexOf(stage) + 1];
+  
+  const promoteBtn = nextStage 
+    ? `<button class="card-action promote" onclick="moveItem('${item.id}','${stage}','${nextStage}')">→ ${STAGE_NAMES[nextStage].replace('区','')}</button>`
+    : '';
+  const demoteBtn = prevStage 
+    ? `<button class="card-action demote" onclick="moveItem('${item.id}','${stage}','${prevStage}')">← 退回</button>`
+    : '';
+
+  return `
+  <div class="card" id="card-${item.id}">
+    <div class="card-title">${escHtml(item.title || '无标题')}</div>
+    ${item.content ? `<div class="card-content" id="cc-${item.id}">${escHtml(item.content)}</div>` : ''}
+    ${tagsHtml ? `<div class="card-tags">${tagsHtml}</div>` : ''}
+    <div class="card-footer">
+      <span class="card-date">${date}</span>
+      ${item.content && item.content.length > 120 
+        ? `<button class="card-action" onclick="toggleExpand('${item.id}')">展开</button>` : ''}
+      <button class="card-action" onclick="openEdit('${item.id}','${stage}')">编辑</button>
+      ${demoteBtn}
+      ${promoteBtn}
+      <button class="card-action danger" onclick="confirmDelete('${item.id}','${stage}')">删除</button>
+    </div>
+  </div>`;
+}
+
+function toggleExpand(id) {
+  const el = document.getElementById(`cc-${id}`);
+  const btn = el.nextElementSibling && el.nextElementSibling.nextElementSibling;
+  if (!el) return;
+  el.classList.toggle('expanded');
+  // find the toggle button by text
+  const card = document.getElementById(`card-${id}`);
+  const btns = card.querySelectorAll('.card-action');
+  for (const b of btns) {
+    if (b.textContent === '展开' || b.textContent === '收起') {
+      b.textContent = el.classList.contains('expanded') ? '收起' : '展开';
+    }
+  }
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ============================================================
+// ADD / EDIT / DELETE
+// ============================================================
+function uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+function openAdd(stage) {
+  showItemModal(null, stage);
+}
+
+function openEdit(id, stage) {
+  const items = getStageData(stage);
+  const item = items.find(i => i.id === id);
+  if (item) showItemModal(item, stage);
+}
+
+function showItemModal(item, stage) {
+  const isEdit = !!item;
+  const modalHtml = `
+  <div class="modal-overlay" onclick="closeModal(event)" id="item-modal-overlay">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">${isEdit ? '编辑条目' : '新增条目'}</div>
+        <button class="modal-close" onclick="closeAllModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">标题 *</label>
+          <input class="form-input" id="item-title" placeholder="给这个想法起个名字" value="${isEdit ? escHtml(item.title||'') : ''}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">内容 / 笔记</label>
+          <textarea class="form-textarea" id="item-content" placeholder="详细描述你的想法、灵感、情节、旋律...">${isEdit ? escHtml(item.content||'') : ''}</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">标签（逗号分隔）</label>
+          <input class="form-input" id="item-tags" placeholder="例：悬疑, 反转, 校园" value="${isEdit ? escHtml((item.tags||[]).join(', ')) : ''}">
+          <span class="form-hint">多个标签用中文或英文逗号分隔</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">阶段</label>
+          <div class="stage-select">
+            ${STAGES.map(s => {
+              const cls = `stage-opt${s === stage ? ` active-${s}` : ''}`;
+              return `<button class="${cls}" onclick="selectStage(this,'${s}')" data-stage="${s}">${STAGE_NAMES[s]}</button>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAllModals()">取消</button>
+        <button class="btn btn-primary" onclick="saveItem('${isEdit ? item.id : ''}', '${stage}')">
+          ${isEdit ? '保存修改' : '添加'}
+        </button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('modal-root').innerHTML = modalHtml;
+  document.getElementById('item-title').focus();
+}
+
+function selectStage(btn, stage) {
+  document.querySelectorAll('.stage-opt').forEach(b => {
+    b.className = 'stage-opt';
+  });
+  btn.className = `stage-opt active-${stage}`;
+}
+
+function getSelectedStage() {
+  const active = document.querySelector('.stage-opt.active-ideas, .stage-opt.active-wip, .stage-opt.active-done');
+  if (!active) return 'ideas';
+  return active.dataset.stage;
+}
+
+function saveItem(existingId, originalStage) {
+  const title = document.getElementById('item-title').value.trim();
+  if (!title) { 
+    document.getElementById('item-title').style.borderColor = 'var(--accent)';
+    document.getElementById('item-title').focus();
+    return; 
+  }
+
+  const content = document.getElementById('item-content').value.trim();
+  const tagsRaw = document.getElementById('item-tags').value;
+  const tags = tagsRaw.split(/[,，]/).map(t => t.trim()).filter(Boolean);
+  const newStage = getSelectedStage();
+  const now = new Date().toISOString();
+
+  const cat = state.category;
+  const sub = state.subtype;
+
+  if (existingId) {
+    // Edit: remove from original stage
+    let origItems = sub ? state.data[cat][sub][originalStage] : state.data[cat][originalStage];
+    const idx = origItems.findIndex(i => i.id === existingId);
+    if (idx === -1) { closeAllModals(); return; }
+    const updated = { ...origItems[idx], title, content, tags, updated_at: now };
+    origItems.splice(idx, 1);
+    // Add to new stage
+    let destItems = sub ? state.data[cat][sub][newStage] : state.data[cat][newStage];
+    destItems.push(updated);
+  } else {
+    const newItem = { id: uuid(), title, content, tags, created_at: now, updated_at: now };
+    let destItems = sub ? state.data[cat][sub][newStage] : state.data[cat][newStage];
+    destItems.unshift(newItem);
+  }
+
+  closeAllModals();
+  renderCards();
+  scheduleSave();
+}
+
+function moveItem(id, fromStage, toStage) {
+  const cat = state.category;
+  const sub = state.subtype;
+  const fromItems = sub ? state.data[cat][sub][fromStage] : state.data[cat][fromStage];
+  const idx = fromItems.findIndex(i => i.id === id);
+  if (idx === -1) return;
+  const [item] = fromItems.splice(idx, 1);
+  item.updated_at = new Date().toISOString();
+  const toItems = sub ? state.data[cat][sub][toStage] : state.data[cat][toStage];
+  toItems.unshift(item);
+  renderCards();
+  scheduleSave();
+}
+
+function confirmDelete(id, stage) {
+  const items = getStageData(stage);
+  const item = items.find(i => i.id === id);
+  const title = item ? escHtml(item.title || '此条目') : '此条目';
+  const modalHtml = `
+  <div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal confirm-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">确认删除</div>
+        <button class="modal-close" onclick="closeAllModals()">×</button>
+      </div>
+      <div class="confirm-text">确定要删除「${title}」吗？此操作不可撤销。</div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAllModals()">取消</button>
+        <button class="btn btn-danger" onclick="deleteItem('${id}','${stage}')">确认删除</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('modal-root').innerHTML = modalHtml;
+}
+
+function deleteItem(id, stage) {
+  const cat = state.category;
+  const sub = state.subtype;
+  if (sub) {
+    state.data[cat][sub][stage] = state.data[cat][sub][stage].filter(i => i.id !== id);
+  } else {
+    state.data[cat][stage] = state.data[cat][stage].filter(i => i.id !== id);
+  }
+  closeAllModals();
+  renderCards();
+  scheduleSave();
+}
+
+// ============================================================
+// SETTINGS MODAL
+// ============================================================
+function showSettings() {
+  const s = state.settings;
+  const modalHtml = `
+  <div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">⚙ 设置 GitHub 同步</div>
+        <button class="modal-close" onclick="closeAllModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-warning">
+          ⚠ 请使用 GitHub Fine-Grained Personal Access Token。<br>
+          权限要求：<strong>Contents: Read &amp; Write</strong>（仅针对私有数据仓库）。<br>
+          Token 存储在本地 localStorage，不会上传。
+        </div>
+        <div class="form-group">
+          <label class="form-label">GitHub Token</label>
+          <input class="form-input" type="password" id="cfg-token" 
+            placeholder="github_pat_xxxx..." value="${escHtml(s.token||'')}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">私有仓库 Owner</label>
+          <input class="form-input" id="cfg-owner" placeholder="your-github-username" value="${escHtml(s.owner||'')}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">私有仓库名称</label>
+          <input class="form-input" id="cfg-repo" placeholder="my-private-repo" value="${escHtml(s.repo||'')}">
+          <span class="form-hint">数据将保存为该仓库中的 writing.json 文件</span>
+        </div>
+        <div id="settings-msg"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAllModals()">取消</button>
+        <button class="btn btn-primary" onclick="applySettings()">保存并测试连接</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('modal-root').innerHTML = modalHtml;
+}
+
+async function applySettings() {
+  const token = document.getElementById('cfg-token').value.trim();
+  const owner = document.getElementById('cfg-owner').value.trim();
+  const repo  = document.getElementById('cfg-repo').value.trim();
+  const msgEl = document.getElementById('settings-msg');
+
+  if (!token || !owner || !repo) {
+    msgEl.innerHTML = '<div class="msg msg-error">请填写所有字段</div>';
+    return;
+  }
+
+  state.settings = { token, owner, repo };
+  saveSettings();
+
+  msgEl.innerHTML = '<div class="msg" style="background:var(--bg3);color:var(--text2)">正在测试连接...</div>';
+
+  // Test connection
+  try {
+    const r = await fetch(`${GITHUB_API}/repos/${owner}/${repo}`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (r.status === 401) throw new Error('Token 无效或已过期');
+    if (r.status === 404) throw new Error('仓库不存在或无访问权限');
+    if (!r.ok) { const e = await r.json(); throw new Error(e.message || `HTTP ${r.status}`); }
+    msgEl.innerHTML = '<div class="msg msg-success">✓ 连接成功！正在加载数据...</div>';
+    setTimeout(async () => {
+      closeAllModals();
+      await loadFromGitHub();
+      renderAll();
+    }, 1000);
+  } catch(e) {
+    msgEl.innerHTML = `<div class="msg msg-error">✗ 连接失败：${escHtml(e.message)}</div>`;
+  }
+}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+function closeModal(event) {
+  if (event.target === event.currentTarget) closeAllModals();
+}
+function closeAllModals() {
+  document.getElementById('modal-root').innerHTML = '';
+}
+
+// Close on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeAllModals();
+});
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  loadSettings();
+  renderSubNav();
+
+  if (hasSettings()) {
+    setSyncStatus('syncing', '加载中...');
+    await loadFromGitHub();
+    renderCards();
+  } else {
+    setSyncStatus('idle', '未配置');
+    renderCards();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
