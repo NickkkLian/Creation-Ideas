@@ -1306,15 +1306,35 @@ async function fetchImage(path) {
   if (!hasSettings()) return null;
   const { token, owner, repo } = state.settings;
   try {
-    const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + path.split('/').map(encodeURIComponent).join('/'), {
+    const encodedPath = path.split('/').map(encodeURIComponent).join('/');
+    const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + encodedPath, {
       headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
     });
-    if (!r.ok) return null;
+    if (!r.ok) { console.warn('fetchImage: API returned', r.status, path); return null; }
     const json = await r.json();
-    const dataUrl = 'data:' + imgMime(path) + ';base64,' + json.content.replace(/\n/g,'');
+    let dataUrl;
+    if (json.content) {
+      // File ≤1MB: base64 content inline
+      const b64 = json.content.replace(/[\n\r\s]/g, '');
+      dataUrl = 'data:' + imgMime(path) + ';base64,' + b64;
+    } else if (json.download_url) {
+      // File >1MB: fetch via temporary download URL
+      const dlR = await fetch(json.download_url);
+      if (!dlR.ok) return null;
+      const blob = await dlR.blob();
+      dataUrl = await new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onload = () => res(reader.result);
+        reader.onerror = rej;
+        reader.readAsDataURL(blob);
+      });
+    } else {
+      console.warn('fetchImage: no content or download_url', path);
+      return null;
+    }
     imageCache.set(path, dataUrl);
     return dataUrl;
-  } catch(e) { return null; }
+  } catch(e) { console.error('fetchImage error:', path, e); return null; }
 }
 
 async function uploadImage(file) {
@@ -1367,6 +1387,11 @@ async function loadCardImages() {
     if (dataUrl) {
       el.src = dataUrl;
       el.classList.add('loaded');
+    } else {
+      // show a subtle broken state so user knows image path is wrong
+      el.style.height = '32px';
+      el.alt = '⚠ 图片加载失败';
+      el.style.opacity = '0.4';
     }
   }
 }
@@ -1638,7 +1663,12 @@ function openDetail(id, stage) {
   if (item.image) {
     fetchImage(item.image).then(dataUrl => {
       const el = document.getElementById('detail-img-el');
-      if (el && dataUrl) el.src = dataUrl;
+      if (!el) return;
+      if (dataUrl) {
+        el.src = dataUrl;
+      } else {
+        el.parentElement.innerHTML = '<div style="padding:14px 0;color:var(--text3);font-size:0.82rem;font-style:italic">图片加载失败（文件可能过大或路径有误）</div>';
+      }
     });
   }
 }
@@ -1790,8 +1820,9 @@ function saveItem(existingId, originalStage) {
     const img = modalImagePath !== undefined ? modalImagePath : origItems[idx].image;
     const updated = { ...origItems[idx], title, content, tags, image: img || undefined, updated_at: now };
     if (newStage === originalStage) {
-      // Same stage: update in-place, preserve position
-      origItems[idx] = updated;
+      // Same stage: remove and re-insert at top (most recently edited = first)
+      origItems.splice(idx, 1);
+      origItems.unshift(updated);
     } else {
       // Stage changed: move to top of target stage
       origItems.splice(idx, 1);
