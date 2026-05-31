@@ -1005,7 +1005,7 @@ function mergeData(defaults, loaded) {
   return result;
 }
 
-async function saveToGitHub(silent) {
+async function saveToGitHub(silent, _retrying = false) {
   if (!hasSettings()) return false;
   if (!silent) setSyncStatus('syncing', '保存中...');
   try {
@@ -1018,6 +1018,20 @@ async function saveToGitHub(silent) {
       ...(state.sha ? { sha: state.sha } : {})
     };
     const r = await githubPut(`/repos/${owner}/${repo}/contents/writing.json`, body);
+
+    // 409 = SHA conflict (file changed externally or previous save SHA stale). Re-fetch and retry once.
+    if (r.status === 409 && !_retrying) {
+      setSyncStatus('syncing', 'SHA冲突，重新同步...');
+      const refetch = await githubGet(`/repos/${owner}/${repo}/contents/writing.json`);
+      if (refetch.ok) {
+        const json = await refetch.json();
+        state.sha = json.sha;
+      } else {
+        state.sha = null;
+      }
+      return saveToGitHub(silent, true);
+    }
+
     if (!r.ok) {
       const err = await r.json();
       setSyncStatus('error', `保存失败: ${err.message || r.status}`);
