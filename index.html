@@ -927,7 +927,7 @@ function renderCards() {
 
     if (!items.length) {
       body.innerHTML = addBtn + `<div class="empty-state">暂无内容<br>点击上方按钮添加</div>`;
-      return;
+      continue;
     }
 
     const cards = items.map(item => renderCard(item, stage)).join('');
