@@ -580,6 +580,56 @@ body::before {
 
 
 
+
+/* File attachments */
+.file-list { display: flex; flex-direction: column; gap: 6px; }
+.file-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px;
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 6px;
+}
+.file-icon { font-size: 1rem; flex-shrink: 0; }
+.file-name {
+  flex: 1; font-family: 'Courier Prime', monospace; font-size: 0.8rem;
+  color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.file-size { font-family: 'Courier Prime', monospace; font-size: 0.72rem; color: var(--text3); flex-shrink: 0; }
+.file-remove {
+  background: transparent; border: none; color: var(--text3); cursor: pointer;
+  font-size: 1rem; line-height: 1; padding: 0 2px; transition: color 0.15s; flex-shrink: 0;
+}
+.file-remove:hover { color: var(--accent2); }
+.file-upload-area {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.file-upload-progress { font-size: 0.82rem; color: var(--green2); font-style: italic; }
+.file-upload-error { font-size: 0.82rem; color: var(--accent2); font-style: italic; }
+
+/* Card file chips */
+.card-files { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.card-file-chip {
+  font-family: 'Courier Prime', monospace; font-size: 0.72rem;
+  background: #1a1a2e; border: 1px solid #2a2a50; color: #8888cc;
+  padding: 2px 8px; border-radius: 3px; display: flex; align-items: center; gap: 4px;
+}
+
+/* Detail file list */
+.detail-file-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
+  margin-bottom: 6px;
+}
+.detail-file-item .file-name { font-size: 0.88rem; }
+.btn-download {
+  padding: 4px 12px; border-radius: 4px;
+  background: var(--bg4); border: 1px solid var(--border2); color: var(--text2);
+  font-family: 'EB Garamond', serif; font-size: 0.85rem; cursor: pointer;
+  transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+}
+.btn-download:hover { background: var(--blue); border-color: var(--blue2); color: #fff; }
+.btn-download.loading { opacity: 0.6; cursor: wait; }
+
 /* Detail modal */
 .detail-modal {
   max-width: 580px;
@@ -1290,6 +1340,133 @@ function executeBatchMove() {
   scheduleSave();
 }
 
+
+// ============================================================
+// FILE ATTACHMENTS
+// ============================================================
+let modalFiles = [];  // [{path, name, size}] for current modal
+
+function fileSizeStr(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function fileIcon(name) {
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  return ext === 'pdf' ? '📄' : ext === 'docx' || ext === 'doc' ? '📝' : '📎';
+}
+
+async function uploadFileAttachment(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  if (!hasSettings()) { alert('请先配置 GitHub 设置'); return; }
+
+  const progressEl = document.getElementById('file-upload-progress');
+  for (const file of files) {
+    // Validate type
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    if (!['pdf','docx','doc'].includes(ext)) {
+      if (progressEl) { progressEl.className = 'file-upload-error'; progressEl.textContent = '仅支持 PDF / DOCX 文件'; }
+      continue;
+    }
+    if (progressEl) { progressEl.className = 'file-upload-progress'; progressEl.textContent = '上传 ' + file.name + '...'; }
+    try {
+      const path = await uploadFileToPRepo(file, 'files');
+      modalFiles.push({ path, name: file.name, size: file.size });
+      renderModalFileList();
+      if (progressEl) { progressEl.className = 'file-upload-progress'; progressEl.textContent = '✓ ' + file.name + ' 上传成功'; }
+    } catch(e) {
+      if (progressEl) { progressEl.className = 'file-upload-error'; progressEl.textContent = '✗ ' + file.name + ': ' + e.message; }
+    }
+  }
+  input.value = ''; // reset input
+}
+
+async function uploadFileToPRepo(file, folder) {
+  const { token, owner, repo } = state.settings;
+  const safeFilename = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/^_+|_+$/g, '') || 'file';
+  const path = folder + '/' + Date.now() + '_' + safeFilename;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result.split(',')[1];
+      try {
+        const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + path, {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ message: 'Upload file: ' + file.name, content: base64 })
+        });
+        if (!r.ok) { const e = await r.json(); reject(new Error(e.message || 'HTTP ' + r.status)); return; }
+        resolve(path);
+      } catch(e) { reject(e); }
+    };
+    reader.onerror = () => reject(new Error('读取文件失败'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function removeModalFile(idx) {
+  modalFiles.splice(idx, 1);
+  renderModalFileList();
+}
+
+function renderModalFileList() {
+  const el = document.getElementById('modal-file-list');
+  if (!el) return;
+  if (!modalFiles.length) {
+    el.innerHTML = '<span style="color:var(--text3);font-size:0.82rem;font-style:italic">暂无附件</span>';
+    return;
+  }
+  el.innerHTML = '<div class="file-list">' + modalFiles.map((f, i) =>
+    `<div class="file-item">
+      <span class="file-icon">${fileIcon(f.name)}</span>
+      <span class="file-name" title="${escHtml(f.path)}">${escHtml(f.name)}</span>
+      <span class="file-size">${fileSizeStr(f.size)}</span>
+      <button class="file-remove" onclick="removeModalFile(${i})" title="移除">×</button>
+    </div>`
+  ).join('') + '</div>';
+}
+
+async function downloadFile(path, name, btnEl) {
+  if (!hasSettings()) { alert('请先配置 GitHub 设置'); return; }
+  if (btnEl) { btnEl.classList.add('loading'); btnEl.textContent = '下载中...'; }
+  const { token, owner, repo } = state.settings;
+  try {
+    const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + path, {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const json = await r.json();
+    let blob;
+    if (json.content) {
+      const b64 = json.content.replace(/[\n\r\s]/g, '');
+      const binary = atob(b64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      blob = new Blob([bytes]);
+    } else if (json.download_url) {
+      const dlR = await fetch(json.download_url);
+      if (!dlR.ok) throw new Error('下载失败');
+      blob = await dlR.blob();
+    } else { throw new Error('文件不可访问'); }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name || path.split('/').pop();
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+  } catch(e) {
+    alert('下载失败: ' + e.message);
+  } finally {
+    if (btnEl) { btnEl.classList.remove('loading'); btnEl.textContent = '⬇ 下载'; }
+  }
+}
+
 // ============================================================
 // IMAGE FUNCTIONS
 // ============================================================
@@ -1595,6 +1772,8 @@ function renderCard(item, stage) {
     <div class="card-title-row">${checkbox}<span class="card-title">${escHtml(item.title || '无标题')}</span></div>
     ${item.content ? `<div class="card-content" id="cc-${item.id}">${escHtml(item.content)}</div>` : ''}
     ${tagsHtml ? `<div class="card-tags">${tagsHtml}</div>` : ''}
+    ${(item.files && item.files.length) ? `<div class="card-files">${item.files.map(f =>
+      `<span class="card-file-chip">${fileIcon(f.name)} ${escHtml(f.name)}</span>`).join('')}</div>` : ''}
     <div class="card-footer">
       <span class="card-date">${date}</span>
       <button class="card-action detail-btn" onclick="openDetail('${item.id}','${stage}');event.stopPropagation()">详情</button>
@@ -1651,6 +1830,17 @@ function openDetail(id, stage) {
         ${imgSection}
         ${item.content ? `<div class="detail-content">${escHtml(item.content)}</div>` : '<div class="detail-empty">暂无内容</div>'}
         ${tagsHtml ? `<div class="card-tags" style="margin-top:16px">${tagsHtml}</div>` : ''}
+        ${(item.files && item.files.length) ? `
+          <div style="margin-top:16px">
+            <div class="dest-cat-label" style="margin-bottom:8px">文件附件</div>
+            ${item.files.map((f,i) => `
+              <div class="detail-file-item">
+                <span class="file-icon">${fileIcon(f.name)}</span>
+                <span class="file-name">${escHtml(f.name)}</span>
+                <span class="file-size">${fileSizeStr(f.size)}</span>
+                <button class="btn-download" onclick="downloadFile('${escHtml(f.path)}','${escHtml(f.name)}',this)">⬇ 下载</button>
+              </div>`).join('')}
+          </div>` : ''}
         <div class="detail-meta">
           ${created ? `<span>创建：${created}</span>` : ''}
           ${updated ? `<span>更新：${updated}</span>` : ''}
@@ -1712,6 +1902,7 @@ function openEdit(id, stage) {
 function showItemModal(item, stage) {
   const isEdit = !!item;
   modalImagePath = isEdit ? (item.image || null) : null;
+  modalFiles = isEdit ? JSON.parse(JSON.stringify(item.files || [])) : [];
   const modalHtml = `
   <div class="modal-overlay" onclick="closeModal(event)" id="item-modal-overlay">
     <div class="modal" onclick="event.stopPropagation()">
@@ -1762,6 +1953,17 @@ function showItemModal(item, stage) {
           </div>
         </div>
         <div class="form-group">
+          <label class="form-label">文件附件（PDF / DOCX）</label>
+          <div id="modal-file-list"><span style="color:var(--text3);font-size:0.82rem;font-style:italic">暂无附件</span></div>
+          <div class="file-upload-area" style="margin-top:8px">
+            <label class="upload-label">
+              📎 上传文件
+              <input class="upload-input" type="file" accept=".pdf,.docx,.doc" multiple onchange="uploadFileAttachment(this)">
+            </label>
+            <span id="file-upload-progress" class="file-upload-progress"></span>
+          </div>
+        </div>
+        <div class="form-group">
           <label class="form-label">阶段</label>
           <div class="stage-select">
             ${STAGES.map(s => {
@@ -1781,6 +1983,7 @@ function showItemModal(item, stage) {
   </div>`;
   document.getElementById('modal-root').innerHTML = modalHtml;
   document.getElementById('item-title').focus();
+  renderModalFileList();
   // Load existing image preview if editing
   if (isEdit && item && item.image) {
     fetchImage(item.image).then(dataUrl => {
@@ -1825,7 +2028,7 @@ function saveItem(existingId, originalStage) {
     const idx = origItems.findIndex(i => i.id === existingId);
     if (idx === -1) { closeAllModals(); return; }
     const img = modalImagePath !== undefined ? modalImagePath : origItems[idx].image;
-    const updated = { ...origItems[idx], title, content, tags, image: img || undefined, updated_at: now };
+    const updated = { ...origItems[idx], title, content, tags, image: img || undefined, files: modalFiles.length ? modalFiles : undefined, updated_at: now };
     if (newStage === originalStage) {
       // Same stage: remove and re-insert at top (most recently edited = first)
       origItems.splice(idx, 1);
@@ -1837,7 +2040,7 @@ function saveItem(existingId, originalStage) {
       destItems.unshift(updated);
     }
   } else {
-    const newItem = { id: uuid(), title, content, tags, image: modalImagePath || undefined, created_at: now, updated_at: now };
+    const newItem = { id: uuid(), title, content, tags, image: modalImagePath || undefined, files: modalFiles.length ? modalFiles : undefined, created_at: now, updated_at: now };
     let destItems = sub ? state.data[cat][sub][newStage] : state.data[cat][newStage];
     destItems.unshift(newItem);
   }
