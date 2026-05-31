@@ -308,7 +308,7 @@ body::before {
   white-space: pre-wrap;
   word-break: break-word;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -578,6 +578,68 @@ body::before {
   padding: 20px 24px;
 }
 
+
+
+/* Detail modal */
+.detail-modal {
+  max-width: 580px;
+  width: 92vw;
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+}
+.detail-breadcrumb {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.72rem;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.detail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+.detail-img-wrap {
+  margin-bottom: 18px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg3);
+  max-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.detail-img {
+  width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  display: block;
+}
+.detail-content {
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--text2);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.detail-empty {
+  color: var(--text3);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+.detail-meta {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.72rem;
+  color: var(--text3);
+  flex-wrap: wrap;
+}
 
 /* Multi-select */
 #batch-bar {
@@ -896,7 +958,8 @@ let state = {
   syncTimer: null,
   dirty: false,
   selectMode: false,
-  selectedItems: new Map()
+  selectedItems: new Map(),
+  saving: false
 };
 
 // ============================================================
@@ -1007,6 +1070,13 @@ function mergeData(defaults, loaded) {
 
 async function saveToGitHub(silent, _retrying = false) {
   if (!hasSettings()) return false;
+  // Prevent concurrent saves — if already saving, reschedule and let it finish first
+  if (state.saving && !_retrying) {
+    if (state.syncTimer) clearTimeout(state.syncTimer);
+    state.syncTimer = setTimeout(() => saveToGitHub(false), 1500);
+    return false;
+  }
+  state.saving = true;
   if (!silent) setSyncStatus('syncing', '保存中...');
   try {
     state.data._meta.last_updated = new Date().toISOString();
@@ -1019,7 +1089,7 @@ async function saveToGitHub(silent, _retrying = false) {
     };
     const r = await githubPut(`/repos/${owner}/${repo}/contents/writing.json`, body);
 
-    // 409 = SHA conflict (file changed externally or previous save SHA stale). Re-fetch and retry once.
+    // 409 = SHA stale (file changed externally or concurrent save). Re-fetch latest SHA and retry once.
     if (r.status === 409 && !_retrying) {
       setSyncStatus('syncing', 'SHA冲突，重新同步...');
       const refetch = await githubGet(`/repos/${owner}/${repo}/contents/writing.json`);
@@ -1029,17 +1099,20 @@ async function saveToGitHub(silent, _retrying = false) {
       } else {
         state.sha = null;
       }
+      state.saving = false;
       return saveToGitHub(silent, true);
     }
 
     if (!r.ok) {
       const err = await r.json();
       setSyncStatus('error', `保存失败: ${err.message || r.status}`);
+      state.saving = false;
       return false;
     }
     const result = await r.json();
     state.sha = result.content.sha;
     state.dirty = false;
+    state.saving = false;
     if (!silent) {
       setSyncStatus('success', '已保存');
       setTimeout(() => setSyncStatus('idle', '已同步'), 2000);
@@ -1047,6 +1120,7 @@ async function saveToGitHub(silent, _retrying = false) {
     return true;
   } catch(e) {
     setSyncStatus('error', '保存失败');
+    state.saving = false;
     console.error(e);
     return false;
   }
@@ -1232,7 +1306,7 @@ async function fetchImage(path) {
   if (!hasSettings()) return null;
   const { token, owner, repo } = state.settings;
   try {
-    const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + encodeURIComponent(path), {
+    const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + path.split('/').map(encodeURIComponent).join('/'), {
       headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
     });
     if (!r.ok) return null;
@@ -1252,7 +1326,7 @@ async function uploadImage(file) {
     reader.onload = async () => {
       const base64 = reader.result.split(',')[1];
       try {
-        const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + encodeURIComponent(path), {
+        const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + path.split('/').map(encodeURIComponent).join('/'), {
           method: 'PUT',
           headers: {
             'Authorization': 'Bearer ' + token,
@@ -1491,29 +1565,87 @@ function renderCard(item, stage) {
     ${tagsHtml ? `<div class="card-tags">${tagsHtml}</div>` : ''}
     <div class="card-footer">
       <span class="card-date">${date}</span>
-      ${item.content && item.content.length > 120 
-        ? `<button class="card-action" onclick="toggleExpand('${item.id}')">展开</button>` : ''}
-      <button class="card-action" onclick="openEdit('${item.id}','${stage}')">编辑</button>
+      <button class="card-action detail-btn" onclick="openDetail('${item.id}','${stage}');event.stopPropagation()">详情</button>
+      <button class="card-action" onclick="openEdit('${item.id}','${stage}');event.stopPropagation()">编辑</button>
       ${demoteBtn}
       ${promoteBtn}
-      <button class="card-action danger" onclick="confirmDelete('${item.id}','${stage}')">删除</button>
+      <button class="card-action danger" onclick="confirmDelete('${item.id}','${stage}');event.stopPropagation()">删除</button>
     </div>
   </div>`;
 }
 
-function toggleExpand(id) {
-  const el = document.getElementById(`cc-${id}`);
-  const btn = el.nextElementSibling && el.nextElementSibling.nextElementSibling;
-  if (!el) return;
-  el.classList.toggle('expanded');
-  // find the toggle button by text
-  const card = document.getElementById(`card-${id}`);
-  const btns = card.querySelectorAll('.card-action');
-  for (const b of btns) {
-    if (b.textContent === '展开' || b.textContent === '收起') {
-      b.textContent = el.classList.contains('expanded') ? '收起' : '展开';
-    }
+function openDetail(id, stage) {
+  // find item across all accessible stages
+  let item = null;
+  for (const s of STAGES) {
+    const arr = getStageDataOf(state.category, state.subtype, s);
+    const found = arr.find(i => i.id === id);
+    if (found) { item = found; stage = s; break; }
   }
+  if (!item) return;
+
+  const cat = state.category;
+  const sub = state.subtype;
+  const catInfo = CATEGORIES[cat];
+  const catLabel = catInfo.label;
+  const subLabel = sub && catInfo.subs ? catInfo.subs[sub] : '';
+  const stageLabel = STAGE_NAMES[stage];
+
+  const tagsHtml = (item.tags || []).map(t => `<span class="tag">${escHtml(t)}</span>`).join('');
+  const created = item.created_at ? new Date(item.created_at).toLocaleString('zh-CN') : '';
+  const updated = item.updated_at ? new Date(item.updated_at).toLocaleString('zh-CN') : '';
+
+  const prevStage = STAGES[STAGES.indexOf(stage) - 1];
+  const nextStage = STAGES[STAGES.indexOf(stage) + 1];
+  const promoteBtn = nextStage
+    ? `<button class="btn btn-secondary" onclick="moveItem('${item.id}','${stage}','${nextStage}');closeAllModals()">→ 移至${STAGE_NAMES[nextStage]}</button>` : '';
+  const demoteBtn = prevStage
+    ? `<button class="btn btn-secondary" onclick="moveItem('${item.id}','${stage}','${prevStage}');closeAllModals()">← 退回${STAGE_NAMES[prevStage]}</button>` : '';
+
+  const imgSection = item.image
+    ? `<div class="detail-img-wrap"><img class="detail-img" id="detail-img-el" src="" alt="图片"></div>` : '';
+
+  document.getElementById('modal-root').innerHTML = `
+  <div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal detail-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div style="flex:1">
+          <div class="detail-breadcrumb">${catLabel}${subLabel ? ' › ' + subLabel : ''} › ${stageLabel}</div>
+          <div class="modal-title">${escHtml(item.title || '无标题')}</div>
+        </div>
+        <button class="modal-close" onclick="closeAllModals()">×</button>
+      </div>
+      <div class="detail-body">
+        ${imgSection}
+        ${item.content ? `<div class="detail-content">${escHtml(item.content)}</div>` : '<div class="detail-empty">暂无内容</div>'}
+        ${tagsHtml ? `<div class="card-tags" style="margin-top:16px">${tagsHtml}</div>` : ''}
+        <div class="detail-meta">
+          ${created ? `<span>创建：${created}</span>` : ''}
+          ${updated ? `<span>更新：${updated}</span>` : ''}
+        </div>
+      </div>
+      <div class="modal-footer">
+        ${demoteBtn}
+        ${promoteBtn}
+        <span style="flex:1"></span>
+        <button class="btn btn-secondary" onclick="closeAllModals();openEdit('${item.id}','${stage}')">编辑</button>
+        <button class="btn btn-secondary" onclick="closeAllModals()">关闭</button>
+      </div>
+    </div>
+  </div>`;
+
+  // load image async
+  if (item.image) {
+    fetchImage(item.image).then(dataUrl => {
+      const el = document.getElementById('detail-img-el');
+      if (el && dataUrl) el.src = dataUrl;
+    });
+  }
+}
+
+function getStageDataOf(cat, sub, stage) {
+  if (sub) return state.data[cat][sub][stage];
+  return state.data[cat][stage];
 }
 
 function escHtml(s) {
@@ -1652,16 +1784,20 @@ function saveItem(existingId, originalStage) {
   const sub = state.subtype;
 
   if (existingId) {
-    // Edit: remove from original stage
     let origItems = sub ? state.data[cat][sub][originalStage] : state.data[cat][originalStage];
     const idx = origItems.findIndex(i => i.id === existingId);
     if (idx === -1) { closeAllModals(); return; }
     const img = modalImagePath !== undefined ? modalImagePath : origItems[idx].image;
     const updated = { ...origItems[idx], title, content, tags, image: img || undefined, updated_at: now };
-    origItems.splice(idx, 1);
-    // Add to new stage
-    let destItems = sub ? state.data[cat][sub][newStage] : state.data[cat][newStage];
-    destItems.push(updated);
+    if (newStage === originalStage) {
+      // Same stage: update in-place, preserve position
+      origItems[idx] = updated;
+    } else {
+      // Stage changed: move to top of target stage
+      origItems.splice(idx, 1);
+      const destItems = sub ? state.data[cat][sub][newStage] : state.data[cat][newStage];
+      destItems.unshift(updated);
+    }
   } else {
     const newItem = { id: uuid(), title, content, tags, image: modalImagePath || undefined, created_at: now, updated_at: now };
     let destItems = sub ? state.data[cat][sub][newStage] : state.data[cat][newStage];
