@@ -305,8 +305,10 @@ body::before {
   color: var(--text2);
   line-height: 1.6;
   margin-bottom: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -576,6 +578,188 @@ body::before {
   padding: 20px 24px;
 }
 
+
+/* Multi-select */
+#batch-bar {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 24px;
+  background: #1a1400;
+  border-bottom: 1px solid #4a3a10;
+  position: sticky;
+  top: 56px;
+  z-index: 90;
+}
+#batch-bar.visible { display: flex; }
+.batch-count {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.85rem;
+  color: var(--accent3);
+}
+.batch-spacer { flex: 1; }
+
+.card.selectable { cursor: pointer; }
+.card.selectable:hover { border-color: var(--text3); }
+.card.selected {
+  border-color: var(--accent3) !important;
+  background: #1a1600 !important;
+  box-shadow: 0 0 0 1px var(--accent3);
+}
+.card-checkbox {
+  width: 16px; height: 16px;
+  border: 2px solid var(--border2);
+  border-radius: 3px;
+  display: inline-block;
+  flex-shrink: 0;
+  margin-right: 6px;
+  vertical-align: middle;
+  background: var(--bg);
+  transition: all 0.15s;
+  position: relative;
+}
+.card.selected .card-checkbox {
+  background: var(--accent3);
+  border-color: var(--accent3);
+}
+.card.selected .card-checkbox::after {
+  content: '';
+  position: absolute;
+  left: 3px; top: 1px;
+  width: 5px; height: 8px;
+  border: 2px solid #000;
+  border-top: none; border-left: none;
+  transform: rotate(40deg);
+}
+.card-title-row { display: flex; align-items: flex-start; gap: 2px; }
+
+/* Batch move modal destination grid */
+.dest-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dest-cat-label {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.75rem;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+.dest-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.dest-opt {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  background: var(--bg);
+  color: var(--text2);
+  font-family: 'EB Garamond', serif;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.dest-opt:hover { background: var(--bg3); color: var(--text); border-color: var(--text3); }
+.dest-opt.selected-dest { background: var(--accent); border-color: var(--accent); color: #fff; }
+.dest-stage-row { display: flex; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.dest-stage-opt {
+  flex: 1; padding: 7px; text-align: center;
+  border-radius: var(--radius); border: 1px solid var(--border2);
+  background: var(--bg); color: var(--text2);
+  font-family: 'EB Garamond', serif; font-size: 0.88rem;
+  cursor: pointer; transition: all 0.2s;
+}
+.dest-stage-opt:hover { background: var(--bg3); }
+.dest-stage-opt.sel-ideas { background: var(--stage-idea-bg); border-color: var(--stage-idea-border); color: #7ab87a; }
+.dest-stage-opt.sel-wip   { background: var(--stage-wip-bg);  border-color: var(--stage-wip-border);  color: #c8a060; }
+.dest-stage-opt.sel-done  { background: var(--stage-done-bg); border-color: var(--stage-done-border); color: #6090c8; }
+
+/* Card image */
+.card-img-wrap {
+  margin: -14px -14px 10px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  overflow: hidden;
+  max-height: 180px;
+  background: var(--bg3);
+}
+.card-img {
+  width: 100%;
+  object-fit: cover;
+  max-height: 180px;
+  display: block;
+  transition: opacity 0.3s;
+  opacity: 0;
+}
+.card-img.loaded { opacity: 1; }
+.card-img-placeholder {
+  width: 100%; height: 60px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3); font-size: 0.78rem;
+  font-family: 'Courier Prime', monospace;
+}
+
+/* Image picker in modal */
+.img-picker { border: 1px solid var(--border2); border-radius: var(--radius); overflow: hidden; }
+.img-picker-tabs { display: flex; border-bottom: 1px solid var(--border2); }
+.img-picker-tab {
+  flex: 1; padding: 8px;
+  background: transparent; border: none; border-right: 1px solid var(--border2);
+  color: var(--text3); font-family: 'EB Garamond', serif; font-size: 0.88rem;
+  cursor: pointer; transition: all 0.2s;
+}
+.img-picker-tab:last-child { border-right: none; }
+.img-picker-tab.active { background: var(--bg3); color: var(--text); }
+.img-picker-tab:hover:not(.active) { background: var(--bg4); color: var(--text2); }
+.img-picker-body { padding: 12px; background: var(--bg); min-height: 60px; }
+
+.img-preview-wrap { display: flex; align-items: flex-start; gap: 12px; }
+.img-preview {
+  width: 90px; height: 70px; border-radius: 6px; object-fit: cover;
+  border: 1px solid var(--border2); background: var(--bg3); flex-shrink: 0;
+}
+.img-preview-path {
+  font-family: 'Courier Prime', monospace; font-size: 0.75rem;
+  color: var(--text3); word-break: break-all; margin-top: 4px;
+}
+.btn-clear-img {
+  font-size: 0.78rem; color: var(--accent); background: transparent;
+  border: 1px solid var(--accent); border-radius: 4px; padding: 2px 8px;
+  cursor: pointer; margin-top: 6px; display: inline-block;
+}
+.btn-clear-img:hover { background: #2e1010; }
+
+.upload-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; background: var(--bg3);
+  border: 1px dashed var(--border2); border-radius: var(--radius);
+  color: var(--text2); cursor: pointer; font-family: 'EB Garamond', serif;
+  font-size: 0.9rem; transition: all 0.2s;
+}
+.upload-label:hover { background: var(--bg4); color: var(--text); border-color: var(--text3); }
+.upload-input { display: none; }
+.upload-progress { font-size: 0.82rem; color: var(--green2); margin-top: 6px; font-style: italic; }
+
+.repo-img-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px; max-height: 200px; overflow-y: auto;
+}
+.repo-img-item { display: flex; flex-direction: column; gap: 3px; cursor: pointer; }
+.repo-img-thumb {
+  width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px;
+  border: 2px solid transparent; transition: all 0.2s; background: var(--bg3);
+}
+.repo-img-thumb:hover { border-color: var(--text3); }
+.repo-img-thumb.selected { border-color: var(--accent2); }
+.repo-img-name {
+  font-family: 'Courier Prime', monospace; font-size: 0.65rem; color: var(--text3);
+  text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.img-loading { color: var(--text3); font-size: 0.82rem; font-style: italic; }
+
 /* README instructions (hidden, for reference) */
 </style>
 </head>
@@ -590,6 +774,7 @@ body::before {
     <span id="sync-text">未配置</span>
   </div>
   <button class="header-btn" onclick="manualSync()" id="sync-btn">⟳ 同步</button>
+  <button class="header-btn" id="select-mode-btn" onclick="toggleSelectMode()">☑ 多选</button>
   <button class="header-btn" onclick="showSettings()">⚙ 设置</button>
 </header>
 
@@ -608,6 +793,14 @@ body::before {
 
 <!-- SUB NAV -->
 <nav id="sub-nav"></nav>
+
+<!-- BATCH BAR -->
+<div id="batch-bar">
+  <span class="batch-count" id="batch-count-text">已选 0 条</span>
+  <button class="header-btn" onclick="openBatchMove()">↗ 移动到...</button>
+  <span class="batch-spacer"></span>
+  <button class="header-btn" onclick="cancelSelectMode()">✕ 取消多选</button>
+</div>
 
 <!-- STAGE AREA -->
 <main id="stage-area">
@@ -701,7 +894,9 @@ let state = {
   sha: null,
   settings: { token: '', owner: '', repo: '' },
   syncTimer: null,
-  dirty: false
+  dirty: false,
+  selectMode: false,
+  selectedItems: new Map()
 };
 
 // ============================================================
@@ -858,6 +1053,311 @@ async function manualSync() {
   renderAll();
 }
 
+
+
+// ============================================================
+// MULTI-SELECT
+// ============================================================
+// state.selectMode and state.selectedItems added to state object below
+
+function toggleSelectMode() {
+  state.selectMode = !state.selectMode;
+  if (!state.selectMode) {
+    state.selectedItems.clear();
+  }
+  document.getElementById('select-mode-btn').textContent = state.selectMode ? '✕ 退出多选' : '☑ 多选';
+  document.getElementById('select-mode-btn').style.background = state.selectMode ? 'var(--accent3)' : '';
+  document.getElementById('select-mode-btn').style.color = state.selectMode ? '#000' : '';
+  document.getElementById('select-mode-btn').style.borderColor = state.selectMode ? 'var(--accent3)' : '';
+  updateBatchBar();
+  renderCards();
+}
+
+function cancelSelectMode() {
+  state.selectMode = false;
+  state.selectedItems.clear();
+  document.getElementById('select-mode-btn').textContent = '☑ 多选';
+  document.getElementById('select-mode-btn').style.cssText = '';
+  updateBatchBar();
+  renderCards();
+}
+
+function toggleSelectItem(id, stage, cardEl) {
+  if (!state.selectMode) return;
+  const key = id + '|' + stage;
+  if (state.selectedItems.has(key)) {
+    state.selectedItems.delete(key);
+    cardEl.classList.remove('selected');
+  } else {
+    state.selectedItems.set(key, stage);
+    cardEl.classList.add('selected');
+  }
+  updateBatchBar();
+}
+
+function updateBatchBar() {
+  const bar = document.getElementById('batch-bar');
+  const count = state.selectedItems.size;
+  if (state.selectMode) {
+    bar.classList.add('visible');
+    document.getElementById('batch-count-text').textContent = '已选 ' + count + ' 条';
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+// Destination state for batch move modal
+let batchDest = { cat: null, sub: null, stage: 'ideas' };
+
+function openBatchMove() {
+  if (state.selectedItems.size === 0) {
+    alert('请先选择条目');
+    return;
+  }
+  batchDest = { cat: Object.keys(CATEGORIES)[0], sub: null, stage: 'ideas' };
+  const firstCat = Object.keys(CATEGORIES)[0];
+  batchDest.cat = firstCat;
+  batchDest.sub = CATEGORIES[firstCat].subs ? Object.keys(CATEGORIES[firstCat].subs)[0] : null;
+
+  renderBatchMoveModal();
+}
+
+function renderBatchMoveModal() {
+  const count = state.selectedItems.size;
+  let catBtns = Object.entries(CATEGORIES).map(([k,v]) =>
+    `<button class="dest-opt${batchDest.cat === k ? ' selected-dest' : ''}" onclick="setBatchCat('${k}')">${v.icon} ${v.label}</button>`
+  ).join('');
+
+  const catInfo = CATEGORIES[batchDest.cat];
+  let subSection = '';
+  if (catInfo.subs) {
+    const subBtns = Object.entries(catInfo.subs).map(([k,v]) =>
+      `<button class="dest-opt${batchDest.sub === k ? ' selected-dest' : ''}" onclick="setBatchSub('${k}')">${v}</button>`
+    ).join('');
+    subSection = `<div><div class="dest-cat-label">子类型</div><div class="dest-options">${subBtns}</div></div>`;
+  }
+
+  const stageBtns = [['ideas','想法区'],['wip','半成品区'],['done','成品区']].map(([k,v]) =>
+    `<button class="dest-stage-opt${batchDest.stage === k ? ' sel-'+k : ''}" onclick="setBatchStage('${k}')">${v}</button>`
+  ).join('');
+
+  const modalHtml = `
+  <div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width:460px">
+      <div class="modal-header">
+        <div class="modal-title">移动 ${count} 条条目到...</div>
+        <button class="modal-close" onclick="closeAllModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="dest-grid">
+          <div>
+            <div class="dest-cat-label">分类</div>
+            <div class="dest-options">${catBtns}</div>
+          </div>
+          ${subSection}
+          <div>
+            <div class="dest-cat-label">阶段</div>
+            <div class="dest-stage-row">${stageBtns}</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAllModals()">取消</button>
+        <button class="btn btn-primary" onclick="executeBatchMove()">确认移动</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('modal-root').innerHTML = modalHtml;
+}
+
+function setBatchCat(cat) {
+  batchDest.cat = cat;
+  batchDest.sub = CATEGORIES[cat].subs ? Object.keys(CATEGORIES[cat].subs)[0] : null;
+  renderBatchMoveModal();
+}
+function setBatchSub(sub) { batchDest.sub = sub; renderBatchMoveModal(); }
+function setBatchStage(stage) { batchDest.stage = stage; renderBatchMoveModal(); }
+
+function executeBatchMove() {
+  const { cat, sub, stage } = batchDest;
+  const destItems = sub ? state.data[cat][sub][stage] : state.data[cat][stage];
+  const now = new Date().toISOString();
+
+  for (const [key, fromStage] of state.selectedItems) {
+    const id = key.split('|')[0];
+    // find and remove from source
+    const srcCat = state.category;
+    const srcSub = state.subtype;
+    const srcArr = srcSub ? state.data[srcCat][srcSub][fromStage] : state.data[srcCat][fromStage];
+    const idx = srcArr.findIndex(i => i.id === id);
+    if (idx === -1) continue;
+    const [item] = srcArr.splice(idx, 1);
+    item.updated_at = now;
+    destItems.unshift(item);
+  }
+
+  state.selectedItems.clear();
+  closeAllModals();
+  cancelSelectMode();
+  scheduleSave();
+}
+
+// ============================================================
+// IMAGE FUNCTIONS
+// ============================================================
+const imageCache = new Map(); // path -> dataURL
+let modalImagePath = null;    // currently selected image in open modal
+
+function imgMime(filename) {
+  const ext = (filename.split('.').pop() || '').toLowerCase();
+  return { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp' }[ext] || 'image/jpeg';
+}
+
+async function fetchImage(path) {
+  if (imageCache.has(path)) return imageCache.get(path);
+  if (!hasSettings()) return null;
+  const { token, owner, repo } = state.settings;
+  try {
+    const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + encodeURIComponent(path), {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!r.ok) return null;
+    const json = await r.json();
+    const dataUrl = 'data:' + imgMime(path) + ';base64,' + json.content.replace(/\n/g,'');
+    imageCache.set(path, dataUrl);
+    return dataUrl;
+  } catch(e) { return null; }
+}
+
+async function uploadImage(file) {
+  const { token, owner, repo } = state.settings;
+  const safeFilename = file.name.replace(/[^a-zA-Z0-9._\u4e00-\u9fa5-]/g, '_');
+  const path = 'images/' + Date.now() + '_' + safeFilename;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result.split(',')[1];
+      try {
+        const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + encodeURIComponent(path), {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ message: 'Upload image: ' + file.name, content: base64 })
+        });
+        if (!r.ok) { const e = await r.json(); reject(new Error(e.message || r.status)); return; }
+        imageCache.set(path, reader.result);
+        resolve(path);
+      } catch(e) { reject(e); }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function listRepoImages() {
+  if (!hasSettings()) return [];
+  const { token, owner, repo } = state.settings;
+  try {
+    const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/images', {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!r.ok) return [];
+    const files = await r.json();
+    return Array.isArray(files)
+      ? files.filter(f => f.type === 'file' && /\.(jpe?g|png|gif|webp)$/i.test(f.name))
+      : [];
+  } catch(e) { return []; }
+}
+
+async function loadCardImages() {
+  const placeholders = document.querySelectorAll('[data-img-path]');
+  for (const el of placeholders) {
+    const path = el.dataset.imgPath;
+    const dataUrl = await fetchImage(path);
+    if (dataUrl) {
+      el.src = dataUrl;
+      el.classList.add('loaded');
+    }
+  }
+}
+
+function setModalImage(path, dataUrl) {
+  modalImagePath = path;
+  const preview = document.getElementById('modal-img-preview');
+  if (!preview) return;
+  if (path && dataUrl) {
+    preview.innerHTML = '<div class="img-preview-wrap"><img class="img-preview" src="' + dataUrl + '" alt="preview"><div><div class="img-preview-path">' + escHtml(path) + '</div><button class="btn-clear-img" onclick="clearModalImage()">&#x2715; \u79fb\u9664\u56fe\u7247</button></div></div>';
+  } else {
+    preview.innerHTML = '<span style="color:var(--text3);font-size:0.85rem">\u672a\u9009\u62e9\u56fe\u7247</span>';
+  }
+}
+
+function clearModalImage() {
+  modalImagePath = null;
+  const preview = document.getElementById('modal-img-preview');
+  if (preview) preview.innerHTML = '<span style="color:var(--text3);font-size:0.85rem">\u672a\u9009\u62e9\u56fe\u7247</span>';
+}
+
+function switchImgTab(tab) {
+  document.querySelectorAll('.img-picker-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.img-tab-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('img-tab-btn-' + tab).classList.add('active');
+  document.getElementById('img-panel-' + tab).style.display = 'block';
+  if (tab === 'repo') loadRepoImagePanel();
+}
+
+async function loadRepoImagePanel() {
+  const panel = document.getElementById('img-panel-repo');
+  if (!panel) return;
+  panel.innerHTML = '<div class="img-loading">\u52a0\u8f7d\u4ed3\u5e93\u56fe\u7247\u4e2d...</div>';
+  const files = await listRepoImages();
+  if (!files.length) {
+    panel.innerHTML = '<div class="img-loading">images/ \u76ee\u5f55\u4e3a\u7a7a\u6216\u4e0d\u5b58\u5728</div>';
+    return;
+  }
+  let grid = '<div class="repo-img-grid" id="repo-grid">';
+  for (const f of files) {
+    const thumbId = 'rthumb-' + f.sha.slice(0,8);
+    grid += '<div class="repo-img-item" onclick="selectRepoImage(\'' + escHtml(f.path) + '\',this)">' +
+            '<img class="repo-img-thumb" data-img-path="' + escHtml(f.path) + '" src="" alt="' + escHtml(f.name) + '" id="' + thumbId + '">' +
+            '<span class="repo-img-name">' + escHtml(f.name) + '</span></div>';
+  }
+  grid += '</div>';
+  panel.innerHTML = grid;
+  for (const f of files) {
+    fetchImage(f.path).then(dataUrl => {
+      if (!dataUrl) return;
+      const el = document.getElementById('rthumb-' + f.sha.slice(0,8));
+      if (el) { el.src = dataUrl; el.classList.add('loaded'); }
+    });
+  }
+}
+
+async function selectRepoImage(path, itemEl) {
+  document.querySelectorAll('.repo-img-thumb').forEach(t => t.classList.remove('selected'));
+  if (itemEl) { const th = itemEl.querySelector('.repo-img-thumb'); if (th) th.classList.add('selected'); }
+  const dataUrl = await fetchImage(path);
+  setModalImage(path, dataUrl);
+}
+
+async function handleUploadFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const progressEl = document.getElementById('upload-progress');
+  if (progressEl) progressEl.textContent = '\u4e0a\u4f20\u4e2d...';
+  try {
+    const path = await uploadImage(file);
+    const dataUrl = imageCache.get(path);
+    setModalImage(path, dataUrl);
+    if (progressEl) progressEl.textContent = '\u2713 \u4e0a\u4f20\u6210\u529f';
+    switchImgTab('current');
+  } catch(e) {
+    if (progressEl) progressEl.textContent = '\u2717 \u4e0a\u4f20\u5931\u8d25: ' + e.message;
+  }
+}
+
 // ============================================================
 // SYNC STATUS
 // ============================================================
@@ -934,6 +1434,7 @@ function renderCards() {
     const cards = items.map(item => renderCard(item, stage)).join('');
     body.innerHTML = addBtn + cards;
   }
+  loadCardImages();
 }
 
 function renderAll() {
@@ -955,9 +1456,23 @@ function renderCard(item, stage) {
     ? `<button class="card-action demote" onclick="moveItem('${item.id}','${stage}','${prevStage}')">← 退回</button>`
     : '';
 
+  const imgHtml = item.image
+    ? `<div class="card-img-wrap"><img class="card-img" data-img-path="${escHtml(item.image)}" src="" alt="图片"></div>`
+    : '';
+
+  const selectable = state.selectMode ? ' selectable' : '';
+  const selected = state.selectMode && state.selectedItems.has(item.id + '|' + stage) ? ' selected' : '';
+  const clickHandler = state.selectMode
+    ? `onclick="toggleSelectItem('${item.id}','${stage}',this)"`
+    : '';
+  const checkbox = state.selectMode
+    ? `<span class="card-checkbox"></span>`
+    : '';
+
   return `
-  <div class="card" id="card-${item.id}">
-    <div class="card-title">${escHtml(item.title || '无标题')}</div>
+  <div class="card${selectable}${selected}" id="card-${item.id}" ${clickHandler}>
+    ${imgHtml}
+    <div class="card-title-row">${checkbox}<span class="card-title">${escHtml(item.title || '无标题')}</span></div>
     ${item.content ? `<div class="card-content" id="cc-${item.id}">${escHtml(item.content)}</div>` : ''}
     ${tagsHtml ? `<div class="card-tags">${tagsHtml}</div>` : ''}
     <div class="card-footer">
@@ -1013,6 +1528,7 @@ function openEdit(id, stage) {
 
 function showItemModal(item, stage) {
   const isEdit = !!item;
+  modalImagePath = isEdit ? (item.image || null) : null;
   const modalHtml = `
   <div class="modal-overlay" onclick="closeModal(event)" id="item-modal-overlay">
     <div class="modal" onclick="event.stopPropagation()">
@@ -1035,6 +1551,34 @@ function showItemModal(item, stage) {
           <span class="form-hint">多个标签用中文或英文逗号分隔</span>
         </div>
         <div class="form-group">
+          <label class="form-label">图片</label>
+          <div class="img-picker">
+            <div class="img-picker-tabs">
+              <button class="img-picker-tab active" id="img-tab-btn-current" onclick="switchImgTab('current')">当前图片</button>
+              <button class="img-picker-tab" id="img-tab-btn-upload" onclick="switchImgTab('upload')">上传新图</button>
+              <button class="img-picker-tab" id="img-tab-btn-repo" onclick="switchImgTab('repo')">从仓库选取</button>
+            </div>
+            <div class="img-picker-body">
+              <div class="img-tab-panel" id="img-panel-current">
+                <div id="modal-img-preview">${isEdit && item.image
+                  ? `<div class="img-preview-wrap"><img class="img-preview" id="modal-edit-thumb" src="" alt="preview"><div><div class="img-preview-path">${escHtml(item.image)}</div><button class="btn-clear-img" onclick="clearModalImage()">&#x2715; 移除图片</button></div></div>`
+                  : '<span style="color:var(--text3);font-size:0.85rem">未选择图片</span>'
+                }</div>
+              </div>
+              <div class="img-tab-panel" id="img-panel-upload" style="display:none">
+                <label class="upload-label">
+                  📎 选择图片文件
+                  <input class="upload-input" type="file" accept="image/*" onchange="handleUploadFile(this)">
+                </label>
+                <div id="upload-progress" class="upload-progress"></div>
+              </div>
+              <div class="img-tab-panel" id="img-panel-repo" style="display:none">
+                <div class="img-loading">点击"从仓库选取"标签加载</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
           <label class="form-label">阶段</label>
           <div class="stage-select">
             ${STAGES.map(s => {
@@ -1054,6 +1598,13 @@ function showItemModal(item, stage) {
   </div>`;
   document.getElementById('modal-root').innerHTML = modalHtml;
   document.getElementById('item-title').focus();
+  // Load existing image preview if editing
+  if (isEdit && item && item.image) {
+    fetchImage(item.image).then(dataUrl => {
+      const th = document.getElementById('modal-edit-thumb');
+      if (th && dataUrl) th.src = dataUrl;
+    });
+  }
 }
 
 function selectStage(btn, stage) {
@@ -1091,13 +1642,14 @@ function saveItem(existingId, originalStage) {
     let origItems = sub ? state.data[cat][sub][originalStage] : state.data[cat][originalStage];
     const idx = origItems.findIndex(i => i.id === existingId);
     if (idx === -1) { closeAllModals(); return; }
-    const updated = { ...origItems[idx], title, content, tags, updated_at: now };
+    const img = modalImagePath !== undefined ? modalImagePath : origItems[idx].image;
+    const updated = { ...origItems[idx], title, content, tags, image: img || undefined, updated_at: now };
     origItems.splice(idx, 1);
     // Add to new stage
     let destItems = sub ? state.data[cat][sub][newStage] : state.data[cat][newStage];
     destItems.push(updated);
   } else {
-    const newItem = { id: uuid(), title, content, tags, created_at: now, updated_at: now };
+    const newItem = { id: uuid(), title, content, tags, image: modalImagePath || undefined, created_at: now, updated_at: now };
     let destItems = sub ? state.data[cat][sub][newStage] : state.data[cat][newStage];
     destItems.unshift(newItem);
   }
