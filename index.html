@@ -581,6 +581,36 @@ body::before {
 
 
 
+
+/* Public indicator & toggle */
+.public-badge {
+  font-size: 0.68rem;
+  font-family: 'Courier Prime', monospace;
+  background: #0e2a1a;
+  border: 1px solid #1e5a3a;
+  color: #4caf80;
+  padding: 1px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.public-toggle-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text3);
+  font-family: 'EB Garamond', serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.public-toggle-btn:hover { border-color: #1e5a3a; color: #4caf80; }
+.public-toggle-btn.is-public {
+  background: #0e2a1a; border-color: #1e5a3a; color: #4caf80;
+}
+
 /* File attachments */
 .file-list { display: flex; flex-direction: column; gap: 6px; }
 .file-item {
@@ -886,6 +916,7 @@ body::before {
     <span id="sync-text">未配置</span>
   </div>
   <button class="header-btn" onclick="manualSync()" id="sync-btn">⟳ 同步</button>
+  <button class="header-btn" onclick="exportPublicItems()" title="下载已标记为「公开展示」的条目">⬇ 导出展示</button>
   <button class="header-btn" id="select-mode-btn" onclick="toggleSelectMode()">☑ 多选</button>
   <button class="header-btn" onclick="showSettings()">⚙ 设置</button>
 </header>
@@ -1192,6 +1223,115 @@ async function manualSync() {
 }
 
 
+
+
+// ============================================================
+// PUBLIC FLAG & EXPORT
+// ============================================================
+function togglePublicItem(id, stage, btnEl) {
+  const cat = state.category;
+  const sub = state.subtype;
+  const items = sub ? state.data[cat][sub][stage] : state.data[cat][stage];
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  item.public = !item.public;
+  // Update button in-place — no need to re-render the whole modal
+  if (btnEl) {
+    btnEl.className = 'public-toggle-btn' + (item.public ? ' is-public' : '');
+    btnEl.innerHTML = item.public ? '🌐 已公开' : '○ 设为公开';
+  }
+  // Update card badge in-place if visible
+  const card = document.getElementById('card-' + id);
+  if (card) {
+    const titleRow = card.querySelector('.card-title-row');
+    if (titleRow) {
+      let badge = titleRow.querySelector('.public-badge');
+      if (item.public && !badge) {
+        badge = document.createElement('span');
+        badge.className = 'public-badge';
+        badge.textContent = '公开';
+        titleRow.appendChild(badge);
+      } else if (!item.public && badge) {
+        badge.remove();
+      }
+    }
+  }
+  scheduleSave();
+}
+
+function exportPublicItems() {
+  // Collect all public items across every category / subtype / stage
+  const sectionMap = new Map(); // sectionKey -> { type, label, catLabel, items[] }
+
+  for (const [catKey, catInfo] of Object.entries(CATEGORIES)) {
+    if (catInfo.subs) {
+      for (const [subKey, subLabel] of Object.entries(catInfo.subs)) {
+        for (const stage of STAGES) {
+          const arr = (state.data[catKey] && state.data[catKey][subKey] && state.data[catKey][subKey][stage]) || [];
+          for (const item of arr) {
+            if (!item.public) continue;
+            if (!sectionMap.has(subKey)) {
+              sectionMap.set(subKey, { type: subKey, label: subLabel, catLabel: catInfo.label, items: [] });
+            }
+            sectionMap.get(subKey).items.push(itemToExport(item, catInfo.label));
+          }
+        }
+      }
+    } else {
+      for (const stage of STAGES) {
+        const arr = (state.data[catKey] && state.data[catKey][stage]) || [];
+        for (const item of arr) {
+          if (!item.public) continue;
+          if (!sectionMap.has(catKey)) {
+            sectionMap.set(catKey, { type: catKey, label: catInfo.label, catLabel: catInfo.label, items: [] });
+          }
+          sectionMap.get(catKey).items.push(itemToExport(item, catInfo.label));
+        }
+      }
+    }
+  }
+
+  if (!sectionMap.size) {
+    alert('暂无标记为「公开展示」的条目，请先在条目详情中点击「设为公开」。');
+    return;
+  }
+
+  const exportData = {
+    title: '创意想法库',
+    generatedAt: new Date().toISOString(),
+    sections: Array.from(sectionMap.values()).map(s => ({
+      type: s.type,
+      label: s.label,
+      items: s.items
+    }))
+  };
+
+  const json = JSON.stringify(exportData, null, 2);
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'writing-public-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+
+function itemToExport(item, catLabel) {
+  // summary = first non-empty line, capped at 80 chars
+  const firstLine = (item.content || '').split('\n').find(l => l.trim()) || '';
+  const summary = firstLine.length > 80 ? firstLine.slice(0, 80) + '…' : firstLine;
+  return {
+    id: item.id || '',
+    name: item.title || '',
+    summary: summary,
+    category: catLabel || '',
+    content: item.content || '',
+    tags: item.tags || [],
+    updatedAt: item.updated_at || ''
+  };
+}
 
 // ============================================================
 // MULTI-SELECT
@@ -1810,7 +1950,7 @@ function renderCard(item, stage) {
   return `
   <div class="card${selectable}${selected}" id="card-${item.id}" ${clickHandler}>
     ${imgHtml}
-    <div class="card-title-row">${checkbox}<span class="card-title">${escHtml(item.title || '无标题')}</span></div>
+    <div class="card-title-row">${checkbox}<span class="card-title">${escHtml(item.title || '无标题')}</span>${item.public ? '<span class="public-badge">公开</span>' : ''}</div>
     ${item.content ? `<div class="card-content" id="cc-${item.id}">${escHtml(item.content)}</div>` : ''}
     ${tagsHtml ? `<div class="card-tags">${tagsHtml}</div>` : ''}
     ${(item.files && item.files.length) ? `<div class="card-files">${item.files.map(f =>
@@ -1891,6 +2031,10 @@ function openDetail(id, stage) {
         ${demoteBtn}
         ${promoteBtn}
         <span style="flex:1"></span>
+        <button class="public-toggle-btn${item.public ? ' is-public' : ''}" id="pub-toggle-btn"
+          onclick="togglePublicItem('${item.id}','${stage}',this)">
+          ${item.public ? '🌐 已公开' : '○ 设为公开'}
+        </button>
         <button class="btn btn-secondary" onclick="closeAllModals();openEdit('${item.id}','${stage}')">编辑</button>
         <button class="btn btn-secondary" onclick="closeAllModals()">关闭</button>
       </div>
