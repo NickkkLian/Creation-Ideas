@@ -1308,11 +1308,37 @@ function exportPublicItems() {
   };
 
   const json = JSON.stringify(exportData, null, 2);
+  const count = Array.from(sectionMap.values()).reduce((n, s) => n + s.items.length, 0);
+  publishPublic('writing.public.json', json, count);
+}
+
+// 发布公开数据：直接写入 GitHub 数据仓库（与主数据同仓库，根目录）；
+// 未配置 GitHub 或发布失败时回退为本地下载
+async function publishPublic(filename, json, count) {
+  if (hasSettings()) {
+    try {
+      setSyncStatus('syncing', '发布公开数据...');
+      const PUBLIC_REPO = 'Database-Public'; // 公开数据专用仓库（public）——网站只从这里读取，碰不到私有库
+      const { owner } = state.settings;
+      const head = await githubGet(`/repos/${owner}/${PUBLIC_REPO}/contents/${filename}`);
+      const sha = head.ok ? (await head.json()).sha : null;
+      const r = await githubPut(`/repos/${owner}/${PUBLIC_REPO}/contents/${filename}`, {
+        message: `publish ${filename} (${count} entries)`,
+        content: b64Encode(json),
+        ...(sha ? { sha } : {})
+      });
+      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || 'HTTP ' + r.status); }
+      setSyncStatus('success', `已发布 ${count} 条公开内容`);
+      return;
+    } catch (e) {
+      setSyncStatus('error', '发布失败，已转为本地下载');
+    }
+  }
   const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'writing.public.json';
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
