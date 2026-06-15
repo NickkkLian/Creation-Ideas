@@ -902,6 +902,18 @@ body::before {
 }
 .img-loading { color: var(--text3); font-size: 0.82rem; font-style: italic; }
 
+/* [hub-mobile] 手机端适配：阶段栏由 3 列堆成 1 列，头部/分类栏可换行/横滚，卡片按钮不竖排 */
+@media (max-width: 640px) {
+  #header { height: auto; min-height: 56px; padding: 8px 14px; gap: 10px; flex-wrap: wrap; }
+  #header h1 { font-size: 1.1rem; }
+  #cat-nav { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 12px 14px 0; }
+  .cat-tab { white-space: nowrap; flex: 0 0 auto; padding: 10px 14px; }
+  #stage-area { grid-template-columns: 1fr; gap: 16px; padding: 16px 14px 40px; min-height: auto; }
+  .stage-col { min-height: 0; }
+  .card-footer { flex-wrap: wrap; }
+  .card-action { white-space: nowrap; }
+}
+
 /* README instructions (hidden, for reference) */
 </style>
 </head>
