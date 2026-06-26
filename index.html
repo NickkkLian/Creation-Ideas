@@ -921,28 +921,29 @@ body::before {
 
 <!-- HEADER -->
 <header id="header">
-  <h1>✦ 创意<span>想法库</span></h1>
+  <h1 id="app-h1">✦ 创意<span>想法库</span></h1>
   <div class="header-spacer"></div>
   <div id="sync-status" class="idle">
     <div class="sync-dot"></div>
     <span id="sync-text">未配置</span>
   </div>
-  <button class="header-btn" onclick="manualSync()" id="sync-btn">⟳ 同步</button>
-  <button class="header-btn" onclick="exportPublicItems()" title="下载已标记为「公开展示」的条目">⬇ 导出展示</button>
-  <button class="header-btn" id="select-mode-btn" onclick="toggleSelectMode()">☑ 多选</button>
-  <button class="header-btn" onclick="showSettings()">⚙ 设置</button>
+  <button class="header-btn" onclick="manualSync()" id="sync-btn" data-i18n="syncBtn">⟳ 同步</button>
+  <button class="header-btn" onclick="exportPublicItems()" data-i18n="exportBtn" data-i18n-title="exportBtnT" title="下载已标记为「公开展示」的条目">⬇ 导出展示</button>
+  <button class="header-btn" id="select-mode-btn" onclick="toggleSelectMode()" data-i18n="selectBtn">☑ 多选</button>
+  <button class="header-btn" id="langBtn" onclick="toggleLang()" title="中 / EN">EN</button>
+  <button class="header-btn" onclick="showSettings()" data-i18n="settingsBtn">⚙ 设置</button>
 </header>
 
 <!-- CATEGORY NAV -->
 <nav id="cat-nav">
   <button class="cat-tab active" onclick="setCategory('mystery')" id="cat-mystery">
-    <span class="cat-icon">🔍</span>推理类
+    <span class="cat-icon">🔍</span><span data-i18n="cat_mystery">推理类</span>
   </button>
   <button class="cat-tab" onclick="setCategory('music')" id="cat-music">
-    <span class="cat-icon">🎵</span>音乐类
+    <span class="cat-icon">🎵</span><span data-i18n="cat_music">音乐类</span>
   </button>
   <button class="cat-tab" onclick="setCategory('literature')" id="cat-literature">
-    <span class="cat-icon">📖</span>文学类
+    <span class="cat-icon">📖</span><span data-i18n="cat_literature">文学类</span>
   </button>
 </nav>
 
@@ -951,39 +952,39 @@ body::before {
 
 <!-- BATCH BAR -->
 <div id="batch-bar">
-  <span class="batch-count" id="batch-count-text">已选 0 条</span>
-  <button class="header-btn" onclick="openBatchMove()">↗ 移动到...</button>
+  <span class="batch-count" id="batch-count-text"></span>
+  <button class="header-btn" onclick="openBatchMove()" data-i18n="batchMove">↗ 移动到...</button>
   <span class="batch-spacer"></span>
-  <button class="header-btn" onclick="cancelSelectMode()">✕ 取消多选</button>
+  <button class="header-btn" onclick="cancelSelectMode()" data-i18n="batchCancel">✕ 取消多选</button>
 </div>
 
 <!-- STAGE AREA -->
 <main id="stage-area">
   <div class="stage-col" id="col-ideas">
     <div class="stage-header ideas">
-      <span class="stage-title">💡 想法区</span>
+      <span class="stage-title" data-i18n="st_ideas">💡 想法区</span>
       <span class="stage-count" id="count-ideas">0</span>
     </div>
     <div class="stage-body ideas" id="body-ideas">
-      <button class="add-btn" onclick="openAdd('ideas')">＋ 新增想法</button>
+      <button class="add-btn" onclick="openAdd('ideas')" data-i18n="addIdeas">＋ 新增想法</button>
     </div>
   </div>
   <div class="stage-col" id="col-wip">
     <div class="stage-header wip">
-      <span class="stage-title">🔨 半成品区</span>
+      <span class="stage-title" data-i18n="st_wip">🔨 半成品区</span>
       <span class="stage-count" id="count-wip">0</span>
     </div>
     <div class="stage-body wip" id="body-wip">
-      <button class="add-btn" onclick="openAdd('wip')">＋ 新增</button>
+      <button class="add-btn" onclick="openAdd('wip')" data-i18n="addWip">＋ 新增</button>
     </div>
   </div>
   <div class="stage-col" id="col-done">
     <div class="stage-header done">
-      <span class="stage-title">✨ 成品区</span>
+      <span class="stage-title" data-i18n="st_done">✨ 成品区</span>
       <span class="stage-count" id="count-done">0</span>
     </div>
     <div class="stage-body done" id="body-done">
-      <button class="add-btn" onclick="openAdd('done')">＋ 新增</button>
+      <button class="add-btn" onclick="openAdd('done')" data-i18n="addDone">＋ 新增</button>
     </div>
   </div>
 </main>
@@ -997,34 +998,98 @@ body::before {
 // ============================================================
 const CATEGORIES = {
   mystery: {
-    label: '推理类',
+    label: '推理类', labelEn: 'Mystery',
     icon: '🔍',
     subs: {
       detective_novel: '推理小说',
       murder_mystery: '剧本杀',
       turtle_soup: '海龟汤',
       trpg: '跑团'
+    },
+    subsEn: {
+      detective_novel: 'Detective Novel',
+      murder_mystery: 'Murder Mystery',
+      turtle_soup: 'Situation Puzzle',
+      trpg: 'TRPG'
     }
   },
   music: {
-    label: '音乐类',
+    label: '音乐类', labelEn: 'Music',
     icon: '🎵',
     subs: null // flat
   },
   literature: {
-    label: '文学类',
+    label: '文学类', labelEn: 'Literature',
     icon: '📖',
     subs: {
       essay: '散文',
       popular_novel: '通俗小说',
       poetry: '诗歌'
+    },
+    subsEn: {
+      essay: 'Essay',
+      popular_novel: 'Popular Fiction',
+      poetry: 'Poetry'
     }
   }
 };
 
 const STAGES = ['ideas', 'wip', 'done'];
 const STAGE_NAMES = { ideas: '想法区', wip: '半成品区', done: '成品区' };
+const STAGE_NAMES_EN = { ideas: 'Ideas', wip: 'In Progress', done: 'Done' };
+const STAGE_SHORT = { ideas: '想法', wip: '半成品', done: '成品' };
+const STAGE_SHORT_EN = { ideas: 'Idea', wip: 'Draft', done: 'Piece' };
 const GITHUB_API = 'https://api.github.com';
+
+// ============================================================
+// 双语 i18n（全站共享 pha-lang，默认 zh）
+// ============================================================
+let lang = (() => { try { return localStorage.getItem('pha-lang') === 'en' ? 'en' : 'zh'; } catch { return 'zh'; } })();
+const T = (zh, en) => lang === 'en' ? en : zh;
+const catLabel = c => { const v = CATEGORIES[c]; return v ? (lang === 'en' ? v.labelEn : v.label) : c; };
+const subLabel = (c, s) => { const v = CATEGORIES[c]; if (!v || !s) return ''; return lang === 'en' ? (v.subsEn && v.subsEn[s]) || s : (v.subs && v.subs[s]) || s; };
+const stageName = s => lang === 'en' ? STAGE_NAMES_EN[s] : STAGE_NAMES[s];
+const stageShort = s => lang === 'en' ? STAGE_SHORT_EN[s] : STAGE_SHORT[s];
+const I18N = {
+  appTitle:{zh:'创意',en:'Creative'}, appTitle2:{zh:'想法库',en:' Ideas'},
+  syncBtn:{zh:'⟳ 同步',en:'⟳ Sync'},
+  exportBtn:{zh:'⬇ 导出展示',en:'⬇ Export public'},
+  exportBtnT:{zh:'下载已标记为「公开展示」的条目',en:'Download items marked as public'},
+  selectBtn:{zh:'☑ 多选',en:'☑ Select'},
+  settingsBtn:{zh:'⚙ 设置',en:'⚙ Settings'},
+  cat_mystery:{zh:'推理类',en:'Mystery'},
+  cat_music:{zh:'音乐类',en:'Music'},
+  cat_literature:{zh:'文学类',en:'Literature'},
+  batchMove:{zh:'↗ 移动到...',en:'↗ Move to...'},
+  batchCancel:{zh:'✕ 取消多选',en:'✕ Cancel'},
+  st_ideas:{zh:'💡 想法区',en:'💡 Ideas'},
+  st_wip:{zh:'🔨 半成品区',en:'🔨 In Progress'},
+  st_done:{zh:'✨ 成品区',en:'✨ Done'},
+  addIdeas:{zh:'＋ 新增想法',en:'＋ New idea'},
+  addWip:{zh:'＋ 新增',en:'＋ New'},
+  addDone:{zh:'＋ 新增',en:'＋ New'},
+  langBtn:{zh:'EN',en:'中'},
+};
+const Ls = k => (I18N[k] || {zh:k,en:k})[lang];
+function applyStatic() {
+  document.documentElement.lang = lang === 'en' ? 'en' : 'zh';
+  document.title = lang === 'en' ? 'Creative Ideas' : '创意想法库';
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = Ls(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = Ls(el.dataset.i18nTitle); });
+  const h1 = document.getElementById('app-h1');
+  if (h1) h1.innerHTML = lang === 'en' ? '✦ Creative<span> Ideas</span>' : '✦ 创意<span>想法库</span>';
+  const lb = document.getElementById('langBtn'); if (lb) lb.textContent = Ls('langBtn');
+  const smb = document.getElementById('select-mode-btn');
+  if (smb && !state.selectMode) smb.textContent = Ls('selectBtn');
+}
+function toggleLang() {
+  lang = lang === 'en' ? 'zh' : 'en';
+  try { localStorage.setItem('pha-lang', lang); } catch {}
+  applyStatic();
+  renderSubNav();
+  renderCards();
+  updateBatchBar();
+}
 
 function defaultData() {
   const d = { _meta: { version: '1.0', last_updated: new Date().toISOString() } };
@@ -1109,7 +1174,7 @@ async function githubPut(path, body) {
 
 async function loadFromGitHub() {
   if (!hasSettings()) return false;
-  setSyncStatus('syncing', '读取中...');
+  setSyncStatus('syncing', T('读取中...','Loading...'));
   try {
     const { owner, repo } = state.settings;
     const r = await githubGet(`/repos/${owner}/${repo}/contents/writing.json`);
@@ -1117,13 +1182,13 @@ async function loadFromGitHub() {
       // File doesn't exist, use default and create it
       state.sha = null;
       await saveToGitHub(true);
-      setSyncStatus('success', '已初始化');
-      setTimeout(() => setSyncStatus('idle', '已同步'), 2000);
+      setSyncStatus('success', T('已初始化','Initialized'));
+      setTimeout(() => setSyncStatus('idle', T('已同步','Synced')), 2000);
       return true;
     }
     if (!r.ok) {
       const err = await r.json();
-      setSyncStatus('error', `读取失败: ${err.message || r.status}`);
+      setSyncStatus('error', T('读取失败: ','Load failed: ') + (err.message || r.status));
       return false;
     }
     const json = await r.json();
@@ -1131,11 +1196,11 @@ async function loadFromGitHub() {
     state.data = mergeData(defaultData(), parsed);
     state.sha = json.sha;
     state.dirty = false;
-    setSyncStatus('success', '已同步');
-    setTimeout(() => setSyncStatus('idle', '已同步'), 2000);
+    setSyncStatus('success', T('已同步','Synced'));
+    setTimeout(() => setSyncStatus('idle', T('已同步','Synced')), 2000);
     return true;
   } catch(e) {
-    setSyncStatus('error', '网络错误');
+    setSyncStatus('error', T('网络错误','Network error'));
     console.error(e);
     return false;
   }
@@ -1172,7 +1237,7 @@ async function saveToGitHub(silent, _retrying = false) {
     return false;
   }
   state.saving = true;
-  if (!silent) setSyncStatus('syncing', '保存中...');
+  if (!silent) setSyncStatus('syncing', T('保存中...','Saving...'));
   try {
     state.data._meta.last_updated = new Date().toISOString();
     const content = b64Encode(JSON.stringify(state.data, null, 2));
@@ -1186,7 +1251,7 @@ async function saveToGitHub(silent, _retrying = false) {
 
     // 409 = SHA stale (file changed externally or concurrent save). Re-fetch latest SHA and retry once.
     if (r.status === 409 && !_retrying) {
-      setSyncStatus('syncing', 'SHA冲突，重新同步...');
+      setSyncStatus('syncing', T('SHA冲突，重新同步...','SHA conflict, re-syncing...'));
       const refetch = await githubGet(`/repos/${owner}/${repo}/contents/writing.json`);
       if (refetch.ok) {
         const json = await refetch.json();
@@ -1200,7 +1265,7 @@ async function saveToGitHub(silent, _retrying = false) {
 
     if (!r.ok) {
       const err = await r.json();
-      setSyncStatus('error', `保存失败: ${err.message || r.status}`);
+      setSyncStatus('error', T('保存失败: ','Save failed: ') + (err.message || r.status));
       state.saving = false;
       return false;
     }
@@ -1209,12 +1274,12 @@ async function saveToGitHub(silent, _retrying = false) {
     state.dirty = false;
     state.saving = false;
     if (!silent) {
-      setSyncStatus('success', '已保存');
-      setTimeout(() => setSyncStatus('idle', '已同步'), 2000);
+      setSyncStatus('success', T('已保存','Saved'));
+      setTimeout(() => setSyncStatus('idle', T('已同步','Synced')), 2000);
     }
     return true;
   } catch(e) {
-    setSyncStatus('error', '保存失败');
+    setSyncStatus('error', T('保存失败','Save failed'));
     state.saving = false;
     console.error(e);
     return false;
@@ -1223,7 +1288,7 @@ async function saveToGitHub(silent, _retrying = false) {
 
 function scheduleSave() {
   state.dirty = true;
-  setSyncStatus('unsaved', '未保存');
+  setSyncStatus('unsaved', T('未保存','Unsaved'));
   if (state.syncTimer) clearTimeout(state.syncTimer);
   if (hasSettings()) {
     state.syncTimer = setTimeout(() => saveToGitHub(false), 2000);
@@ -1252,7 +1317,7 @@ function togglePublicItem(id, stage, btnEl) {
   // Update button in-place — no need to re-render the whole modal
   if (btnEl) {
     btnEl.className = 'public-toggle-btn' + (item.public ? ' is-public' : '');
-    btnEl.innerHTML = item.public ? '🌐 已公开' : '○ 设为公开';
+    btnEl.innerHTML = item.public ? T('🌐 已公开','🌐 Public') : T('○ 设为公开','○ Make public');
   }
   // Update card badge in-place if visible
   const card = document.getElementById('card-' + id);
@@ -1263,7 +1328,7 @@ function togglePublicItem(id, stage, btnEl) {
       if (item.public && !badge) {
         badge = document.createElement('span');
         badge.className = 'public-badge';
-        badge.textContent = '公开';
+        badge.textContent = T('公开','Public');
         titleRow.appendChild(badge);
       } else if (!item.public && badge) {
         badge.remove();
@@ -1306,7 +1371,7 @@ function exportPublicItems() {
   }
 
   if (!sectionMap.size) {
-    alert('暂无标记为「公开展示」的条目，请先在条目详情中点击「设为公开」。');
+    alert(T('暂无标记为「公开展示」的条目，请先在条目详情中点击「设为公开」。','No items marked as public yet. Open an item and click “Make public” first.'));
     return;
   }
 
@@ -1331,7 +1396,7 @@ function exportPublicItems() {
 async function publishPublic(filename, json, count) {
   if (hasSettings()) {
     try {
-      setSyncStatus('syncing', '发布公开数据...');
+      setSyncStatus('syncing', T('发布公开数据...','Publishing...'));
       const PUBLIC_REPO = 'Database-Public'; // 公开数据专用仓库（public）——网站只从这里读取，碰不到私有库
       const { owner } = state.settings;
       const head = await githubGet(`/repos/${owner}/${PUBLIC_REPO}/contents/${filename}`);
@@ -1342,10 +1407,10 @@ async function publishPublic(filename, json, count) {
         ...(sha ? { sha } : {})
       });
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || 'HTTP ' + r.status); }
-      setSyncStatus('success', `已发布 ${count} 条公开内容`);
+      setSyncStatus('success', T(`已发布 ${count} 条公开内容`,`Published ${count} public items`));
       return;
     } catch (e) {
-      setSyncStatus('error', '发布失败，已转为本地下载');
+      setSyncStatus('error', T('发布失败，已转为本地下载','Publish failed, fell back to local download'));
     }
   }
   const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
@@ -1384,7 +1449,7 @@ function toggleSelectMode() {
   if (!state.selectMode) {
     state.selectedItems.clear();
   }
-  document.getElementById('select-mode-btn').textContent = state.selectMode ? '✕ 退出多选' : '☑ 多选';
+  document.getElementById('select-mode-btn').textContent = state.selectMode ? T('✕ 退出多选','✕ Exit select') : Ls('selectBtn');
   document.getElementById('select-mode-btn').style.background = state.selectMode ? 'var(--accent3)' : '';
   document.getElementById('select-mode-btn').style.color = state.selectMode ? '#000' : '';
   document.getElementById('select-mode-btn').style.borderColor = state.selectMode ? 'var(--accent3)' : '';
@@ -1395,7 +1460,7 @@ function toggleSelectMode() {
 function cancelSelectMode() {
   state.selectMode = false;
   state.selectedItems.clear();
-  document.getElementById('select-mode-btn').textContent = '☑ 多选';
+  document.getElementById('select-mode-btn').textContent = Ls('selectBtn');
   document.getElementById('select-mode-btn').style.cssText = '';
   updateBatchBar();
   renderCards();
@@ -1419,7 +1484,7 @@ function updateBatchBar() {
   const count = state.selectedItems.size;
   if (state.selectMode) {
     bar.classList.add('visible');
-    document.getElementById('batch-count-text').textContent = '已选 ' + count + ' 条';
+    document.getElementById('batch-count-text').textContent = T('已选 ' + count + ' 条', count + ' selected');
   } else {
     bar.classList.remove('visible');
   }
@@ -1430,7 +1495,7 @@ let batchDest = { cat: null, sub: null, stage: 'ideas' };
 
 function openBatchMove() {
   if (state.selectedItems.size === 0) {
-    alert('请先选择条目');
+    alert(T('请先选择条目','Select items first'));
     return;
   }
   batchDest = { cat: Object.keys(CATEGORIES)[0], sub: null, stage: 'ideas' };
@@ -1443,46 +1508,46 @@ function openBatchMove() {
 
 function renderBatchMoveModal() {
   const count = state.selectedItems.size;
-  let catBtns = Object.entries(CATEGORIES).map(([k,v]) =>
-    `<button class="dest-opt${batchDest.cat === k ? ' selected-dest' : ''}" onclick="setBatchCat('${k}')">${v.icon} ${v.label}</button>`
+  let catBtns = Object.keys(CATEGORIES).map(k =>
+    `<button class="dest-opt${batchDest.cat === k ? ' selected-dest' : ''}" onclick="setBatchCat('${k}')">${CATEGORIES[k].icon} ${catLabel(k)}</button>`
   ).join('');
 
   const catInfo = CATEGORIES[batchDest.cat];
   let subSection = '';
   if (catInfo.subs) {
-    const subBtns = Object.entries(catInfo.subs).map(([k,v]) =>
-      `<button class="dest-opt${batchDest.sub === k ? ' selected-dest' : ''}" onclick="setBatchSub('${k}')">${v}</button>`
+    const subBtns = Object.keys(catInfo.subs).map(k =>
+      `<button class="dest-opt${batchDest.sub === k ? ' selected-dest' : ''}" onclick="setBatchSub('${k}')">${subLabel(batchDest.cat, k)}</button>`
     ).join('');
-    subSection = `<div><div class="dest-cat-label">子类型</div><div class="dest-options">${subBtns}</div></div>`;
+    subSection = `<div><div class="dest-cat-label">${T('子类型','Subtype')}</div><div class="dest-options">${subBtns}</div></div>`;
   }
 
-  const stageBtns = [['ideas','想法区'],['wip','半成品区'],['done','成品区']].map(([k,v]) =>
-    `<button class="dest-stage-opt${batchDest.stage === k ? ' sel-'+k : ''}" onclick="setBatchStage('${k}')">${v}</button>`
+  const stageBtns = STAGES.map(k =>
+    `<button class="dest-stage-opt${batchDest.stage === k ? ' sel-'+k : ''}" onclick="setBatchStage('${k}')">${stageName(k)}</button>`
   ).join('');
 
   const modalHtml = `
   <div class="modal-overlay" onclick="closeModal(event)">
     <div class="modal" onclick="event.stopPropagation()" style="max-width:460px">
       <div class="modal-header">
-        <div class="modal-title">移动 ${count} 条条目到...</div>
+        <div class="modal-title">${T(`移动 ${count} 条条目到...`,`Move ${count} item(s) to...`)}</div>
         <button class="modal-close" onclick="closeAllModals()">×</button>
       </div>
       <div class="modal-body">
         <div class="dest-grid">
           <div>
-            <div class="dest-cat-label">分类</div>
+            <div class="dest-cat-label">${T('分类','Category')}</div>
             <div class="dest-options">${catBtns}</div>
           </div>
           ${subSection}
           <div>
-            <div class="dest-cat-label">阶段</div>
+            <div class="dest-cat-label">${T('阶段','Stage')}</div>
             <div class="dest-stage-row">${stageBtns}</div>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeAllModals()">取消</button>
-        <button class="btn btn-primary" onclick="executeBatchMove()">确认移动</button>
+        <button class="btn btn-secondary" onclick="closeAllModals()">${T('取消','Cancel')}</button>
+        <button class="btn btn-primary" onclick="executeBatchMove()">${T('确认移动','Move')}</button>
       </div>
     </div>
   </div>`;
@@ -1542,22 +1607,22 @@ function fileIcon(name) {
 async function uploadFileAttachment(input) {
   const files = Array.from(input.files);
   if (!files.length) return;
-  if (!hasSettings()) { alert('请先配置 GitHub 设置'); return; }
+  if (!hasSettings()) { alert(T('请先配置 GitHub 设置','Configure GitHub settings first')); return; }
 
   const progressEl = document.getElementById('file-upload-progress');
   for (const file of files) {
     // Validate type
     const ext = (file.name.split('.').pop() || '').toLowerCase();
     if (!['pdf','docx','doc'].includes(ext)) {
-      if (progressEl) { progressEl.className = 'file-upload-error'; progressEl.textContent = '仅支持 PDF / DOCX 文件'; }
+      if (progressEl) { progressEl.className = 'file-upload-error'; progressEl.textContent = T('仅支持 PDF / DOCX 文件','Only PDF / DOCX files are supported'); }
       continue;
     }
-    if (progressEl) { progressEl.className = 'file-upload-progress'; progressEl.textContent = '上传 ' + file.name + '...'; }
+    if (progressEl) { progressEl.className = 'file-upload-progress'; progressEl.textContent = T('上传 ','Uploading ') + file.name + '...'; }
     try {
       const path = await uploadFileToPRepo(file, 'files');
       modalFiles.push({ path, name: file.name, size: file.size });
       renderModalFileList();
-      if (progressEl) { progressEl.className = 'file-upload-progress'; progressEl.textContent = '✓ ' + file.name + ' 上传成功'; }
+      if (progressEl) { progressEl.className = 'file-upload-progress'; progressEl.textContent = '✓ ' + file.name + T(' 上传成功',' uploaded'); }
     } catch(e) {
       if (progressEl) { progressEl.className = 'file-upload-error'; progressEl.textContent = '✗ ' + file.name + ': ' + e.message; }
     }
@@ -1587,7 +1652,7 @@ async function uploadFileToPRepo(file, folder) {
         resolve(path);
       } catch(e) { reject(e); }
     };
-    reader.onerror = () => reject(new Error('读取文件失败'));
+    reader.onerror = () => reject(new Error(T('读取文件失败','Failed to read file')));
     reader.readAsDataURL(file);
   });
 }
@@ -1601,7 +1666,7 @@ function renderModalFileList() {
   const el = document.getElementById('modal-file-list');
   if (!el) return;
   if (!modalFiles.length) {
-    el.innerHTML = '<span style="color:var(--text3);font-size:0.82rem;font-style:italic">暂无附件</span>';
+    el.innerHTML = `<span style="color:var(--text3);font-size:0.82rem;font-style:italic">${T('暂无附件','No attachments')}</span>`;
     return;
   }
   el.innerHTML = '<div class="file-list">' + modalFiles.map((f, i) =>
@@ -1609,14 +1674,14 @@ function renderModalFileList() {
       <span class="file-icon">${fileIcon(f.name)}</span>
       <span class="file-name" title="${escHtml(f.path)}">${escHtml(f.name)}</span>
       <span class="file-size">${fileSizeStr(f.size)}</span>
-      <button class="file-remove" onclick="removeModalFile(${i})" title="移除">×</button>
+      <button class="file-remove" onclick="removeModalFile(${i})" title="${T('移除','Remove')}">×</button>
     </div>`
   ).join('') + '</div>';
 }
 
 async function downloadFile(path, name, btnEl) {
-  if (!hasSettings()) { alert('请先配置 GitHub 设置'); return; }
-  if (btnEl) { btnEl.classList.add('loading'); btnEl.textContent = '下载中...'; }
+  if (!hasSettings()) { alert(T('请先配置 GitHub 设置','Configure GitHub settings first')); return; }
+  if (btnEl) { btnEl.classList.add('loading'); btnEl.textContent = T('下载中...','Downloading...'); }
   const { token, owner, repo } = state.settings;
   try {
     const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + path, {
@@ -1636,23 +1701,23 @@ async function downloadFile(path, name, btnEl) {
       const blobR = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/git/blobs/' + json.sha, {
         headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
       });
-      if (!blobR.ok) throw new Error('文件过大或不可访问');
+      if (!blobR.ok) throw new Error(T('文件过大或不可访问','File too large or inaccessible'));
       const blobJson = await blobR.json();
       const b64 = blobJson.content.replace(/[\n\r\s]/g, '');
       const binary = atob(b64);
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
       blob = new Blob([bytes]);
-    } else { throw new Error('文件不可访问'); }
+    } else { throw new Error(T('文件不可访问','File inaccessible')); }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = name || path.split('/').pop();
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 3000);
   } catch(e) {
-    alert('下载失败: ' + e.message);
+    alert(T('下载失败: ','Download failed: ') + e.message);
   } finally {
-    if (btnEl) { btnEl.classList.remove('loading'); btnEl.textContent = '⬇ 下载'; }
+    if (btnEl) { btnEl.classList.remove('loading'); btnEl.textContent = T('⬇ 下载','⬇ Download'); }
   }
 }
 
@@ -1669,7 +1734,7 @@ function imgMime(filename) {
 
 // fetchImageResult returns { dataUrl, error } so callers know WHY it failed
 async function fetchImageResult(path, _attempt = 0) {
-  if (!hasSettings()) return { dataUrl: null, error: '未配置 GitHub' };
+  if (!hasSettings()) return { dataUrl: null, error: T('未配置 GitHub','GitHub not configured') };
   const { token, owner, repo } = state.settings;
   // Try three path variants in order:
   //  1. raw path (works for ASCII filenames uploaded with new code)
@@ -1694,11 +1759,11 @@ async function fetchImageResult(path, _attempt = 0) {
           await new Promise(res => setTimeout(res, 800 * (_attempt + 1)));
           return fetchImageResult(path, _attempt + 1);
         }
-        return { dataUrl: null, error: 'GitHub 服务器暂时不可用 (' + r.status + ')' };
+        return { dataUrl: null, error: T('GitHub 服务器暂时不可用 (','GitHub server temporarily unavailable (') + r.status + ')' };
       }
       if (r.status === 404) continue; // try next variant
-      if (r.status === 403) return { dataUrl: null, error: 'Token 权限不足 (403)' };
-      if (!r.ok) return { dataUrl: null, error: 'API 错误 (' + r.status + ')' };
+      if (r.status === 403) return { dataUrl: null, error: T('Token 权限不足 (403)','Token lacks permission (403)') };
+      if (!r.ok) return { dataUrl: null, error: T('API 错误 (','API error (') + r.status + ')' };
       const json = await r.json();
       let dataUrl;
       if (json.content) {
@@ -1710,19 +1775,19 @@ async function fetchImageResult(path, _attempt = 0) {
         const blobR = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/git/blobs/' + json.sha, {
           headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
         });
-        if (!blobR.ok) return { dataUrl: null, error: 'Blobs API 失败 (' + blobR.status + ')，文件可能超过 100MB' };
+        if (!blobR.ok) return { dataUrl: null, error: T('Blobs API 失败 (','Blobs API failed (') + blobR.status + T(')，文件可能超过 100MB','), file may exceed 100MB') };
         const blobJson = await blobR.json();
         const b64 = blobJson.content.replace(/[\n\r\s]/g, '');
         dataUrl = 'data:' + imgMime(path) + ';base64,' + b64;
       } else {
-        return { dataUrl: null, error: '文件内容不可访问（无 SHA）' };
+        return { dataUrl: null, error: T('文件内容不可访问（无 SHA）','File content inaccessible (no SHA)') };
       }
       return { dataUrl, error: null };
     } catch(e) {
       console.error('fetchImage variant error:', variant, e);
     }
   }
-  return { dataUrl: null, error: '文件不存在（路径: ' + path + '）' };
+  return { dataUrl: null, error: T('文件不存在（路径: ','File not found (path: ') + path + '）' };
 }
 
 async function blobToDataUrl(blob) {
@@ -1796,7 +1861,7 @@ async function loadCardImages() {
     } else {
       // show a subtle broken state so user knows image path is wrong
       el.style.height = '32px';
-      el.alt = '⚠ 图片加载失败';
+      el.alt = T('⚠ 图片加载失败','⚠ Image failed to load');
       el.style.opacity = '0.4';
     }
   }
@@ -1807,16 +1872,16 @@ function setModalImage(path, dataUrl) {
   const preview = document.getElementById('modal-img-preview');
   if (!preview) return;
   if (path && dataUrl) {
-    preview.innerHTML = '<div class="img-preview-wrap"><img class="img-preview" src="' + dataUrl + '" alt="preview"><div><div class="img-preview-path">' + escHtml(path) + '</div><button class="btn-clear-img" onclick="clearModalImage()">&#x2715; \u79fb\u9664\u56fe\u7247</button></div></div>';
+    preview.innerHTML = '<div class="img-preview-wrap"><img class="img-preview" src="' + dataUrl + '" alt="preview"><div><div class="img-preview-path">' + escHtml(path) + '</div><button class="btn-clear-img" onclick="clearModalImage()">&#x2715; ' + T('\u79fb\u9664\u56fe\u7247','Remove image') + '</button></div></div>';
   } else {
-    preview.innerHTML = '<span style="color:var(--text3);font-size:0.85rem">\u672a\u9009\u62e9\u56fe\u7247</span>';
+    preview.innerHTML = '<span style="color:var(--text3);font-size:0.85rem">' + T('\u672a\u9009\u62e9\u56fe\u7247','No image selected') + '</span>';
   }
 }
 
 function clearModalImage() {
   modalImagePath = null;
   const preview = document.getElementById('modal-img-preview');
-  if (preview) preview.innerHTML = '<span style="color:var(--text3);font-size:0.85rem">\u672a\u9009\u62e9\u56fe\u7247</span>';
+  if (preview) preview.innerHTML = '<span style="color:var(--text3);font-size:0.85rem">' + T('\u672a\u9009\u62e9\u56fe\u7247','No image selected') + '</span>';
 }
 
 function switchImgTab(tab) {
@@ -1830,10 +1895,10 @@ function switchImgTab(tab) {
 async function loadRepoImagePanel() {
   const panel = document.getElementById('img-panel-repo');
   if (!panel) return;
-  panel.innerHTML = '<div class="img-loading">\u52a0\u8f7d\u4ed3\u5e93\u56fe\u7247\u4e2d...</div>';
+  panel.innerHTML = '<div class="img-loading">' + T('\u52a0\u8f7d\u4ed3\u5e93\u56fe\u7247\u4e2d...','Loading repo images...') + '</div>';
   const files = await listRepoImages();
   if (!files.length) {
-    panel.innerHTML = '<div class="img-loading">images/ \u76ee\u5f55\u4e3a\u7a7a\u6216\u4e0d\u5b58\u5728</div>';
+    panel.innerHTML = '<div class="img-loading">' + T('images/ \u76ee\u5f55\u4e3a\u7a7a\u6216\u4e0d\u5b58\u5728','images/ folder is empty or missing') + '</div>';
     return;
   }
   let grid = '<div class="repo-img-grid" id="repo-grid">';
@@ -1865,15 +1930,15 @@ async function handleUploadFile(input) {
   const file = input.files[0];
   if (!file) return;
   const progressEl = document.getElementById('upload-progress');
-  if (progressEl) progressEl.textContent = '\u4e0a\u4f20\u4e2d...';
+  if (progressEl) progressEl.textContent = T('\u4e0a\u4f20\u4e2d...','Uploading...');
   try {
     const path = await uploadImage(file);
     const dataUrl = imageCache.get(path);
     setModalImage(path, dataUrl);
-    if (progressEl) progressEl.textContent = '\u2713 \u4e0a\u4f20\u6210\u529f';
+    if (progressEl) progressEl.textContent = T('\u2713 \u4e0a\u4f20\u6210\u529f','\u2713 Uploaded');
     switchImgTab('current');
   } catch(e) {
-    if (progressEl) progressEl.textContent = '\u2717 \u4e0a\u4f20\u5931\u8d25: ' + e.message;
+    if (progressEl) progressEl.textContent = T('\u2717 \u4e0a\u4f20\u5931\u8d25: ','\u2717 Upload failed: ') + e.message;
   }
 }
 
@@ -1920,9 +1985,9 @@ function renderSubNav() {
     return;
   }
   nav.style.display = 'flex';
-  nav.innerHTML = Object.entries(info.subs).map(([key, label]) =>
-    `<button class="sub-tab${key === state.subtype ? ' active' : ''}" 
-      id="sub-${key}" onclick="setSubtype('${key}')">${label}</button>`
+  nav.innerHTML = Object.keys(info.subs).map(key =>
+    `<button class="sub-tab${key === state.subtype ? ' active' : ''}"
+      id="sub-${key}" onclick="setSubtype('${key}')">${subLabel(state.category, key)}</button>`
   ).join('');
 }
 
@@ -1943,10 +2008,10 @@ function renderCards() {
     const count = document.getElementById(`count-${stage}`);
     count.textContent = items.length;
 
-    const addBtn = `<button class="add-btn" onclick="openAdd('${stage}')">＋ 新增${STAGE_NAMES[stage].replace('区','')}</button>`;
+    const addBtn = `<button class="add-btn" onclick="openAdd('${stage}')">${T('＋ 新增','＋ New ')}${stageShort(stage)}</button>`;
 
     if (!items.length) {
-      body.innerHTML = addBtn + `<div class="empty-state">暂无内容<br>点击上方按钮添加</div>`;
+      body.innerHTML = addBtn + `<div class="empty-state">${T('暂无内容<br>点击上方按钮添加','No items yet<br>Click the button above to add')}</div>`;
       continue;
     }
 
@@ -1968,15 +2033,15 @@ function renderCard(item, stage) {
   const prevStage = STAGES[STAGES.indexOf(stage) - 1];
   const nextStage = STAGES[STAGES.indexOf(stage) + 1];
   
-  const promoteBtn = nextStage 
-    ? `<button class="card-action promote" onclick="moveItem('${item.id}','${stage}','${nextStage}')">→ ${STAGE_NAMES[nextStage].replace('区','')}</button>`
+  const promoteBtn = nextStage
+    ? `<button class="card-action promote" onclick="moveItem('${item.id}','${stage}','${nextStage}')">→ ${stageShort(nextStage)}</button>`
     : '';
-  const demoteBtn = prevStage 
-    ? `<button class="card-action demote" onclick="moveItem('${item.id}','${stage}','${prevStage}')">← 退回</button>`
+  const demoteBtn = prevStage
+    ? `<button class="card-action demote" onclick="moveItem('${item.id}','${stage}','${prevStage}')">${T('← 退回','← Back')}</button>`
     : '';
 
   const imgHtml = item.image
-    ? `<div class="card-img-wrap"><img class="card-img" data-img-path="${escHtml(item.image)}" src="" alt="图片"></div>`
+    ? `<div class="card-img-wrap"><img class="card-img" data-img-path="${escHtml(item.image)}" src="" alt="${T('图片','image')}"></div>`
     : '';
 
   const selectable = state.selectMode ? ' selectable' : '';
@@ -1991,18 +2056,18 @@ function renderCard(item, stage) {
   return `
   <div class="card${selectable}${selected}" id="card-${item.id}" ${clickHandler}>
     ${imgHtml}
-    <div class="card-title-row">${checkbox}<span class="card-title">${escHtml(item.title || '无标题')}</span>${item.public ? '<span class="public-badge">公开</span>' : ''}</div>
+    <div class="card-title-row">${checkbox}<span class="card-title">${escHtml(item.title || T('无标题','Untitled'))}</span>${item.public ? `<span class="public-badge">${T('公开','Public')}</span>` : ''}</div>
     ${item.content ? `<div class="card-content" id="cc-${item.id}">${escHtml(item.content)}</div>` : ''}
     ${tagsHtml ? `<div class="card-tags">${tagsHtml}</div>` : ''}
     ${(item.files && item.files.length) ? `<div class="card-files">${item.files.map(f =>
       `<span class="card-file-chip">${fileIcon(f.name)} ${escHtml(f.name)}</span>`).join('')}</div>` : ''}
     <div class="card-footer">
       <span class="card-date">${date}</span>
-      <button class="card-action detail-btn" onclick="openDetail('${item.id}','${stage}');event.stopPropagation()">详情</button>
-      <button class="card-action" onclick="openEdit('${item.id}','${stage}');event.stopPropagation()">编辑</button>
+      <button class="card-action detail-btn" onclick="openDetail('${item.id}','${stage}');event.stopPropagation()">${T('详情','Details')}</button>
+      <button class="card-action" onclick="openEdit('${item.id}','${stage}');event.stopPropagation()">${T('编辑','Edit')}</button>
       ${demoteBtn}
       ${promoteBtn}
-      <button class="card-action danger" onclick="confirmDelete('${item.id}','${stage}');event.stopPropagation()">删除</button>
+      <button class="card-action danger" onclick="confirmDelete('${item.id}','${stage}');event.stopPropagation()">${T('删除','Delete')}</button>
     </div>
   </div>`;
 }
@@ -2020,52 +2085,53 @@ function openDetail(id, stage) {
   const cat = state.category;
   const sub = state.subtype;
   const catInfo = CATEGORIES[cat];
-  const catLabel = catInfo.label;
-  const subLabel = sub && catInfo.subs ? catInfo.subs[sub] : '';
-  const stageLabel = STAGE_NAMES[stage];
+  const catLab = catLabel(cat);
+  const subLab = sub && catInfo.subs ? subLabel(cat, sub) : '';
+  const stageLabel = stageName(stage);
 
   const tagsHtml = (item.tags || []).map(t => `<span class="tag">${escHtml(t)}</span>`).join('');
-  const created = item.created_at ? new Date(item.created_at).toLocaleString('zh-CN') : '';
-  const updated = item.updated_at ? new Date(item.updated_at).toLocaleString('zh-CN') : '';
+  const locale = lang === 'en' ? 'en-US' : 'zh-CN';
+  const created = item.created_at ? new Date(item.created_at).toLocaleString(locale) : '';
+  const updated = item.updated_at ? new Date(item.updated_at).toLocaleString(locale) : '';
 
   const prevStage = STAGES[STAGES.indexOf(stage) - 1];
   const nextStage = STAGES[STAGES.indexOf(stage) + 1];
   const promoteBtn = nextStage
-    ? `<button class="btn btn-secondary" onclick="moveItem('${item.id}','${stage}','${nextStage}');closeAllModals()">→ 移至${STAGE_NAMES[nextStage]}</button>` : '';
+    ? `<button class="btn btn-secondary" onclick="moveItem('${item.id}','${stage}','${nextStage}');closeAllModals()">${T('→ 移至','→ Move to ')}${stageName(nextStage)}</button>` : '';
   const demoteBtn = prevStage
-    ? `<button class="btn btn-secondary" onclick="moveItem('${item.id}','${stage}','${prevStage}');closeAllModals()">← 退回${STAGE_NAMES[prevStage]}</button>` : '';
+    ? `<button class="btn btn-secondary" onclick="moveItem('${item.id}','${stage}','${prevStage}');closeAllModals()">${T('← 退回','← Back to ')}${stageName(prevStage)}</button>` : '';
 
   const imgSection = item.image
-    ? `<div class="detail-img-wrap"><img class="detail-img" id="detail-img-el" src="" alt="图片"></div>` : '';
+    ? `<div class="detail-img-wrap"><img class="detail-img" id="detail-img-el" src="" alt="${T('图片','image')}"></div>` : '';
 
   document.getElementById('modal-root').innerHTML = `
   <div class="modal-overlay" onclick="closeModal(event)">
     <div class="modal detail-modal" onclick="event.stopPropagation()">
       <div class="modal-header">
         <div style="flex:1">
-          <div class="detail-breadcrumb">${catLabel}${subLabel ? ' › ' + subLabel : ''} › ${stageLabel}</div>
-          <div class="modal-title">${escHtml(item.title || '无标题')}</div>
+          <div class="detail-breadcrumb">${catLab}${subLab ? ' › ' + subLab : ''} › ${stageLabel}</div>
+          <div class="modal-title">${escHtml(item.title || T('无标题','Untitled'))}</div>
         </div>
         <button class="modal-close" onclick="closeAllModals()">×</button>
       </div>
       <div class="detail-body">
         ${imgSection}
-        ${item.content ? `<div class="detail-content">${escHtml(item.content)}</div>` : '<div class="detail-empty">暂无内容</div>'}
+        ${item.content ? `<div class="detail-content">${escHtml(item.content)}</div>` : `<div class="detail-empty">${T('暂无内容','No content')}</div>`}
         ${tagsHtml ? `<div class="card-tags" style="margin-top:16px">${tagsHtml}</div>` : ''}
         ${(item.files && item.files.length) ? `
           <div style="margin-top:16px">
-            <div class="dest-cat-label" style="margin-bottom:8px">文件附件</div>
+            <div class="dest-cat-label" style="margin-bottom:8px">${T('文件附件','Attachments')}</div>
             ${item.files.map((f,i) => `
               <div class="detail-file-item">
                 <span class="file-icon">${fileIcon(f.name)}</span>
                 <span class="file-name">${escHtml(f.name)}</span>
                 <span class="file-size">${fileSizeStr(f.size)}</span>
-                <button class="btn-download" onclick="downloadFile('${escHtml(f.path)}','${escHtml(f.name)}',this)">⬇ 下载</button>
+                <button class="btn-download" onclick="downloadFile('${escHtml(f.path)}','${escHtml(f.name)}',this)">${T('⬇ 下载','⬇ Download')}</button>
               </div>`).join('')}
           </div>` : ''}
         <div class="detail-meta">
-          ${created ? `<span>创建：${created}</span>` : ''}
-          ${updated ? `<span>更新：${updated}</span>` : ''}
+          ${created ? `<span>${T('创建：','Created: ')}${created}</span>` : ''}
+          ${updated ? `<span>${T('更新：','Updated: ')}${updated}</span>` : ''}
         </div>
       </div>
       <div class="modal-footer">
@@ -2074,10 +2140,10 @@ function openDetail(id, stage) {
         <span style="flex:1"></span>
         <button class="public-toggle-btn${item.public ? ' is-public' : ''}" id="pub-toggle-btn"
           onclick="togglePublicItem('${item.id}','${stage}',this)">
-          ${item.public ? '🌐 已公开' : '○ 设为公开'}
+          ${item.public ? T('🌐 已公开','🌐 Public') : T('○ 设为公开','○ Make public')}
         </button>
-        <button class="btn btn-secondary" onclick="closeAllModals();openEdit('${item.id}','${stage}')">编辑</button>
-        <button class="btn btn-secondary" onclick="closeAllModals()">关闭</button>
+        <button class="btn btn-secondary" onclick="closeAllModals();openEdit('${item.id}','${stage}')">${T('编辑','Edit')}</button>
+        <button class="btn btn-secondary" onclick="closeAllModals()">${T('关闭','Close')}</button>
       </div>
     </div>
   </div>`;
@@ -2094,9 +2160,9 @@ function openDetail(id, stage) {
       } else {
         el.parentElement.innerHTML =
           '<div style="padding:12px;background:var(--bg3);border-radius:6px">' +
-          '<div style="color:var(--accent2);font-size:0.85rem;margin-bottom:6px">⚠ 图片加载失败</div>' +
+          '<div style="color:var(--accent2);font-size:0.85rem;margin-bottom:6px">' + T('⚠ 图片加载失败','⚠ Image failed to load') + '</div>' +
           '<div style="color:var(--text3);font-size:0.75rem;font-family:Courier Prime,monospace;margin-bottom:10px;word-break:break-all">' + escHtml(error || '') + '</div>' +
-          '<button class="btn btn-secondary" style="font-size:0.82rem;padding:4px 12px" onclick="retryDetailImage(' + "'" + escHtml(_imgPath) + "'" + ')">↻ 重试</button>' +
+          '<button class="btn btn-secondary" style="font-size:0.82rem;padding:4px 12px" onclick="retryDetailImage(' + "'" + escHtml(_imgPath) + "'" + ')">' + T('↻ 重试','↻ Retry') + '</button>' +
           '</div>';
       }
     });
@@ -2107,7 +2173,7 @@ function retryDetailImage(path) {
   imageCache.delete(path);
   const wrap = document.querySelector('.detail-img-wrap');
   if (!wrap) return;
-  wrap.innerHTML = '<img class="detail-img" id="detail-img-el" src="" alt="图片">';
+  wrap.innerHTML = '<img class="detail-img" id="detail-img-el" src="" alt="' + T('图片','image') + '">';
   fetchImageResult(path).then(({ dataUrl, error }) => {
     const el = document.getElementById('detail-img-el');
     if (!el) return;
@@ -2117,7 +2183,7 @@ function retryDetailImage(path) {
     } else {
       wrap.innerHTML =
         '<div style="padding:12px;background:var(--bg3);border-radius:6px">' +
-        '<div style="color:var(--accent2);font-size:0.85rem;margin-bottom:6px">⚠ 仍然失败</div>' +
+        '<div style="color:var(--accent2);font-size:0.85rem;margin-bottom:6px">' + T('⚠ 仍然失败','⚠ Still failing') + '</div>' +
         '<div style="color:var(--text3);font-size:0.75rem;font-family:Courier Prime,monospace;word-break:break-all">' + escHtml(error || '') + '</div>' +
         '</div>';
     }
@@ -2161,76 +2227,76 @@ function showItemModal(item, stage) {
   <div class="modal-overlay" onclick="closeModal(event)" id="item-modal-overlay">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <div class="modal-title">${isEdit ? '编辑条目' : '新增条目'}</div>
+        <div class="modal-title">${isEdit ? T('编辑条目','Edit item') : T('新增条目','New item')}</div>
         <button class="modal-close" onclick="closeAllModals()">×</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label class="form-label">标题 *</label>
-          <input class="form-input" id="item-title" placeholder="给这个想法起个名字" value="${isEdit ? escHtml(item.title||'') : ''}">
+          <label class="form-label">${T('标题 *','Title *')}</label>
+          <input class="form-input" id="item-title" placeholder="${T('给这个想法起个名字','Give this idea a name')}" value="${isEdit ? escHtml(item.title||'') : ''}">
         </div>
         <div class="form-group">
-          <label class="form-label">内容 / 笔记</label>
-          <textarea class="form-textarea" id="item-content" placeholder="详细描述你的想法、灵感、情节、旋律...">${isEdit ? escHtml(item.content||'') : ''}</textarea>
+          <label class="form-label">${T('内容 / 笔记','Content / notes')}</label>
+          <textarea class="form-textarea" id="item-content" placeholder="${T('详细描述你的想法、灵感、情节、旋律...','Describe your idea, inspiration, plot, melody...')}">${isEdit ? escHtml(item.content||'') : ''}</textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">标签（逗号分隔）</label>
-          <input class="form-input" id="item-tags" placeholder="例：悬疑, 反转, 校园" value="${isEdit ? escHtml((item.tags||[]).join(', ')) : ''}">
-          <span class="form-hint">多个标签用中文或英文逗号分隔</span>
+          <label class="form-label">${T('标签（逗号分隔）','Tags (comma-separated)')}</label>
+          <input class="form-input" id="item-tags" placeholder="${T('例：悬疑, 反转, 校园','e.g. suspense, twist, campus')}" value="${isEdit ? escHtml((item.tags||[]).join(', ')) : ''}">
+          <span class="form-hint">${T('多个标签用中文或英文逗号分隔','Separate tags with commas')}</span>
         </div>
         <div class="form-group">
-          <label class="form-label">图片</label>
+          <label class="form-label">${T('图片','Image')}</label>
           <div class="img-picker">
             <div class="img-picker-tabs">
-              <button class="img-picker-tab active" id="img-tab-btn-current" onclick="switchImgTab('current')">当前图片</button>
-              <button class="img-picker-tab" id="img-tab-btn-upload" onclick="switchImgTab('upload')">上传新图</button>
-              <button class="img-picker-tab" id="img-tab-btn-repo" onclick="switchImgTab('repo')">从仓库选取</button>
+              <button class="img-picker-tab active" id="img-tab-btn-current" onclick="switchImgTab('current')">${T('当前图片','Current')}</button>
+              <button class="img-picker-tab" id="img-tab-btn-upload" onclick="switchImgTab('upload')">${T('上传新图','Upload')}</button>
+              <button class="img-picker-tab" id="img-tab-btn-repo" onclick="switchImgTab('repo')">${T('从仓库选取','From repo')}</button>
             </div>
             <div class="img-picker-body">
               <div class="img-tab-panel" id="img-panel-current">
                 <div id="modal-img-preview">${isEdit && item.image
-                  ? `<div class="img-preview-wrap"><img class="img-preview" id="modal-edit-thumb" src="" alt="preview"><div><div class="img-preview-path">${escHtml(item.image)}</div><button class="btn-clear-img" onclick="clearModalImage()">&#x2715; 移除图片</button></div></div>`
-                  : '<span style="color:var(--text3);font-size:0.85rem">未选择图片</span>'
+                  ? `<div class="img-preview-wrap"><img class="img-preview" id="modal-edit-thumb" src="" alt="preview"><div><div class="img-preview-path">${escHtml(item.image)}</div><button class="btn-clear-img" onclick="clearModalImage()">&#x2715; ${T('移除图片','Remove image')}</button></div></div>`
+                  : `<span style="color:var(--text3);font-size:0.85rem">${T('未选择图片','No image selected')}</span>`
                 }</div>
               </div>
               <div class="img-tab-panel" id="img-panel-upload" style="display:none">
                 <label class="upload-label">
-                  📎 选择图片文件
+                  📎 ${T('选择图片文件','Choose image file')}
                   <input class="upload-input" type="file" accept="image/*" onchange="handleUploadFile(this)">
                 </label>
                 <div id="upload-progress" class="upload-progress"></div>
               </div>
               <div class="img-tab-panel" id="img-panel-repo" style="display:none">
-                <div class="img-loading">点击"从仓库选取"标签加载</div>
+                <div class="img-loading">${T('点击"从仓库选取"标签加载','Click “From repo” tab to load')}</div>
               </div>
             </div>
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">文件附件（PDF / DOCX）</label>
-          <div id="modal-file-list"><span style="color:var(--text3);font-size:0.82rem;font-style:italic">暂无附件</span></div>
+          <label class="form-label">${T('文件附件（PDF / DOCX）','Attachments (PDF / DOCX)')}</label>
+          <div id="modal-file-list"><span style="color:var(--text3);font-size:0.82rem;font-style:italic">${T('暂无附件','No attachments')}</span></div>
           <div class="file-upload-area" style="margin-top:8px">
             <label class="upload-label">
-              📎 上传文件
+              📎 ${T('上传文件','Upload file')}
               <input class="upload-input" type="file" accept=".pdf,.docx,.doc" multiple onchange="uploadFileAttachment(this)">
             </label>
             <span id="file-upload-progress" class="file-upload-progress"></span>
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">阶段</label>
+          <label class="form-label">${T('阶段','Stage')}</label>
           <div class="stage-select">
             ${STAGES.map(s => {
               const cls = `stage-opt${s === stage ? ` active-${s}` : ''}`;
-              return `<button class="${cls}" onclick="selectStage(this,'${s}')" data-stage="${s}">${STAGE_NAMES[s]}</button>`;
+              return `<button class="${cls}" onclick="selectStage(this,'${s}')" data-stage="${s}">${stageName(s)}</button>`;
             }).join('')}
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeAllModals()">取消</button>
+        <button class="btn btn-secondary" onclick="closeAllModals()">${T('取消','Cancel')}</button>
         <button class="btn btn-primary" onclick="saveItem('${isEdit ? item.id : ''}', '${stage}')">
-          ${isEdit ? '保存修改' : '添加'}
+          ${isEdit ? T('保存修改','Save') : T('添加','Add')}
         </button>
       </div>
     </div>
@@ -2321,18 +2387,18 @@ function moveItem(id, fromStage, toStage) {
 function confirmDelete(id, stage) {
   const items = getStageData(stage);
   const item = items.find(i => i.id === id);
-  const title = item ? escHtml(item.title || '此条目') : '此条目';
+  const title = item ? escHtml(item.title || T('此条目','this item')) : T('此条目','this item');
   const modalHtml = `
   <div class="modal-overlay" onclick="closeModal(event)">
     <div class="modal confirm-modal" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <div class="modal-title">确认删除</div>
+        <div class="modal-title">${T('确认删除','Confirm delete')}</div>
         <button class="modal-close" onclick="closeAllModals()">×</button>
       </div>
-      <div class="confirm-text">确定要删除「${title}」吗？此操作不可撤销。</div>
+      <div class="confirm-text">${T(`确定要删除「${title}」吗？此操作不可撤销。`,`Delete “${title}”? This cannot be undone.`)}</div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeAllModals()">取消</button>
-        <button class="btn btn-danger" onclick="deleteItem('${id}','${stage}')">确认删除</button>
+        <button class="btn btn-secondary" onclick="closeAllModals()">${T('取消','Cancel')}</button>
+        <button class="btn btn-danger" onclick="deleteItem('${id}','${stage}')">${T('确认删除','Delete')}</button>
       </div>
     </div>
   </div>`;
@@ -2361,34 +2427,34 @@ function showSettings() {
   <div class="modal-overlay" onclick="closeModal(event)">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <div class="modal-title">⚙ 设置 GitHub 同步</div>
+        <div class="modal-title">${T('⚙ 设置 GitHub 同步','⚙ GitHub Sync Settings')}</div>
         <button class="modal-close" onclick="closeAllModals()">×</button>
       </div>
       <div class="modal-body">
         <div class="settings-warning">
-          ⚠ 请使用 GitHub Fine-Grained Personal Access Token。<br>
-          权限要求：<strong>Contents: Read &amp; Write</strong>（仅针对私有数据仓库）。<br>
-          Token 存储在本地 localStorage，不会上传。
+          ${T('⚠ 请使用 GitHub Fine-Grained Personal Access Token。','⚠ Use a GitHub Fine-Grained Personal Access Token.')}<br>
+          ${T('权限要求：','Permission: ')}<strong>Contents: Read &amp; Write</strong>${T('（仅针对私有数据仓库）。',' (for your private data repo only).')}<br>
+          ${T('Token 存储在本地 localStorage，不会上传。','The token is stored in local localStorage, never uploaded.')}
         </div>
         <div class="form-group">
           <label class="form-label">GitHub Token</label>
-          <input class="form-input" type="password" id="cfg-token" 
+          <input class="form-input" type="password" id="cfg-token"
             placeholder="github_pat_xxxx..." value="${escHtml(s.token||'')}">
         </div>
         <div class="form-group">
-          <label class="form-label">私有仓库 Owner</label>
+          <label class="form-label">${T('私有仓库 Owner','Private repo owner')}</label>
           <input class="form-input" id="cfg-owner" placeholder="your-github-username" value="${escHtml(s.owner||'')}">
         </div>
         <div class="form-group">
-          <label class="form-label">私有仓库名称</label>
+          <label class="form-label">${T('私有仓库名称','Private repo name')}</label>
           <input class="form-input" id="cfg-repo" placeholder="my-private-repo" value="${escHtml(s.repo||'')}">
-          <span class="form-hint">数据将保存为该仓库中的 writing.json 文件</span>
+          <span class="form-hint">${T('数据将保存为该仓库中的 writing.json 文件','Data is saved as writing.json in that repo')}</span>
         </div>
         <div id="settings-msg"></div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeAllModals()">取消</button>
-        <button class="btn btn-primary" onclick="applySettings()">保存并测试连接</button>
+        <button class="btn btn-secondary" onclick="closeAllModals()">${T('取消','Cancel')}</button>
+        <button class="btn btn-primary" onclick="applySettings()">${T('保存并测试连接','Save & test')}</button>
       </div>
     </div>
   </div>`;
@@ -2402,31 +2468,31 @@ async function applySettings() {
   const msgEl = document.getElementById('settings-msg');
 
   if (!token || !owner || !repo) {
-    msgEl.innerHTML = '<div class="msg msg-error">请填写所有字段</div>';
+    msgEl.innerHTML = `<div class="msg msg-error">${T('请填写所有字段','Please fill in all fields')}</div>`;
     return;
   }
 
   state.settings = { token, owner, repo };
   saveSettings();
 
-  msgEl.innerHTML = '<div class="msg" style="background:var(--bg3);color:var(--text2)">正在测试连接...</div>';
+  msgEl.innerHTML = `<div class="msg" style="background:var(--bg3);color:var(--text2)">${T('正在测试连接...','Testing connection...')}</div>`;
 
   // Test connection
   try {
     const r = await fetch(`${GITHUB_API}/repos/${owner}/${repo}`, {
       headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' }
     });
-    if (r.status === 401) throw new Error('Token 无效或已过期');
-    if (r.status === 404) throw new Error('仓库不存在或无访问权限');
+    if (r.status === 401) throw new Error(T('Token 无效或已过期','Token invalid or expired'));
+    if (r.status === 404) throw new Error(T('仓库不存在或无访问权限','Repo not found or no access'));
     if (!r.ok) { const e = await r.json(); throw new Error(e.message || `HTTP ${r.status}`); }
-    msgEl.innerHTML = '<div class="msg msg-success">✓ 连接成功！正在加载数据...</div>';
+    msgEl.innerHTML = `<div class="msg msg-success">${T('✓ 连接成功！正在加载数据...','✓ Connected! Loading data...')}</div>`;
     setTimeout(async () => {
       closeAllModals();
       await loadFromGitHub();
       renderAll();
     }, 1000);
   } catch(e) {
-    msgEl.innerHTML = `<div class="msg msg-error">✗ 连接失败：${escHtml(e.message)}</div>`;
+    msgEl.innerHTML = `<div class="msg msg-error">${T('✗ 连接失败：','✗ Connection failed: ')}${escHtml(e.message)}</div>`;
   }
 }
 
@@ -2450,14 +2516,15 @@ document.addEventListener('keydown', e => {
 // ============================================================
 async function init() {
   loadSettings();
+  applyStatic();
   renderSubNav();
 
   if (hasSettings()) {
-    setSyncStatus('syncing', '加载中...');
+    setSyncStatus('syncing', T('加载中...','Loading...'));
     await loadFromGitHub();
     renderCards();
   } else {
-    setSyncStatus('idle', '未配置');
+    setSyncStatus('idle', T('未配置','Not configured'));
     renderCards();
   }
 }
