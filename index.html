@@ -1,0 +1,4234 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>创意想法库</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0c0a;
+  --bg2: #161410;
+  --bg3: #1e1b17;
+  --bg4: #262219;
+  --border: #2e2920;
+  --border2: #3a3428;
+  --text: #e8dfc8;
+  --text2: #b0a890;
+  --text3: #7a7060;
+  --accent: #c4392a;
+  --accent2: #e04535;
+  --accent3: #f5a623;
+  --green: #2e7d4f;
+  --green2: #3d9e66;
+  --blue: #2a5580;
+  --blue2: #3a72a8;
+  --stage-idea-bg: #151e13;
+  --stage-wip-bg: #1e1810;
+  --stage-done-bg: #101620;
+  --stage-idea-border: #2a3d25;
+  --stage-wip-border: #3d2e18;
+  --stage-done-border: #1e3050;
+  --tag-bg: #2a2420;
+  --tag-text: #c8b898;
+  --radius: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 15px; }
+
+body {
+  font-family: 'EB Garamond', Georgia, serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Subtle texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* HEADER */
+#header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(14,12,10,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 56px;
+}
+
+#header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+#header h1 span { color: var(--accent); }
+
+.header-spacer { flex: 1; }
+
+#sync-status {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s;
+}
+#sync-status.idle { background: var(--bg3); color: var(--text3); }
+#sync-status.syncing { background: #1a2e1a; color: var(--green2); }
+#sync-status.success { background: #1a2e1a; color: var(--green2); }
+#sync-status.error { background: #2e1a1a; color: var(--accent2); }
+#sync-status.unsaved { background: #2e2510; color: var(--accent3); }
+
+.sync-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+#sync-status.syncing .sync-dot {
+  animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+.header-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: 'EB Garamond', serif;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.header-btn:hover { background: var(--bg4); color: var(--text); border-color: var(--text3); }
+.header-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.header-btn.primary:hover { background: var(--accent2); }
+
+/* CATEGORY NAV */
+#cat-nav {
+  display: flex;
+  gap: 4px;
+  padding: 12px 24px 0;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 10;
+  background: var(--bg2);
+}
+
+.cat-tab {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-bottom: none;
+  color: var(--text3);
+  background: transparent;
+  transition: all 0.2s;
+  position: relative;
+  bottom: -1px;
+}
+.cat-tab:hover { color: var(--text2); background: var(--bg3); }
+.cat-tab.active {
+  color: var(--text);
+  background: var(--bg);
+  border-color: var(--border);
+  border-bottom-color: var(--bg);
+}
+.cat-tab .cat-icon { margin-right: 6px; }
+
+/* SUB NAV */
+#sub-nav {
+  display: flex;
+  gap: 4px;
+  padding: 10px 24px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+
+.sub-tab {
+  font-family: 'EB Garamond', serif;
+  font-size: 0.9rem;
+  padding: 5px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  color: var(--text3);
+  background: transparent;
+  transition: all 0.2s;
+}
+.sub-tab:hover { color: var(--text2); border-color: var(--border2); }
+.sub-tab.active {
+  color: var(--text);
+  background: var(--bg3);
+  border-color: var(--border2);
+}
+
+/* STAGE COLUMNS */
+#stage-area {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 20px 24px 40px;
+  min-height: calc(100vh - 160px);
+  position: relative;
+  z-index: 1;
+}
+
+.stage-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 300px;
+}
+
+.stage-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  border: 1px solid;
+  border-bottom: none;
+  position: relative;
+}
+
+.stage-header.ideas { background: var(--stage-idea-bg); border-color: var(--stage-idea-border); }
+.stage-header.wip   { background: var(--stage-wip-bg);  border-color: var(--stage-wip-border); }
+.stage-header.done  { background: var(--stage-done-bg); border-color: var(--stage-done-border); }
+
+.stage-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  flex: 1;
+}
+.stage-header.ideas .stage-title { color: #7ab87a; }
+.stage-header.wip   .stage-title { color: #c8a060; }
+.stage-header.done  .stage-title { color: #6090c8; }
+
+.stage-count {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.75rem;
+  color: var(--text3);
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.stage-body {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid;
+  border-radius: 0 0 var(--radius) var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stage-body.ideas { background: var(--stage-idea-bg); border-color: var(--stage-idea-border); }
+.stage-body.wip   { background: var(--stage-wip-bg);  border-color: var(--stage-wip-border); }
+.stage-body.done  { background: var(--stage-done-bg); border-color: var(--stage-done-border); }
+
+/* ADD BUTTON */
+.add-btn {
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px dashed var(--border2);
+  border-radius: var(--radius);
+  color: var(--text3);
+  cursor: pointer;
+  font-family: 'EB Garamond', serif;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  text-align: center;
+}
+.add-btn:hover { background: var(--bg3); color: var(--text2); border-color: var(--text3); }
+
+/* CARDS */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  cursor: default;
+  transition: all 0.2s;
+  animation: cardIn 0.25s ease;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card:hover { border-color: var(--border2); box-shadow: 0 2px 16px rgba(0,0,0,0.4); }
+
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.card-content {
+  font-size: 0.88rem;
+  color: var(--text2);
+  line-height: 1.6;
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card-content.expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.tag {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.72rem;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  padding: 2px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--border2);
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.card-date {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.7rem;
+  color: var(--text3);
+  flex: 1;
+}
+
+.card-action {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'EB Garamond', serif;
+  font-size: 0.8rem;
+  transition: all 0.15s;
+}
+.card-action:hover { background: var(--bg3); color: var(--text2); border-color: var(--border2); }
+.card-action.danger:hover { background: #2e1010; color: var(--accent2); border-color: var(--accent); }
+.card-action.promote { color: var(--green); border-color: var(--green); }
+.card-action.promote:hover { background: #101e10; color: var(--green2); }
+.card-action.demote { color: var(--accent3); border-color: #5a4510; }
+.card-action.demote:hover { background: #1e1a0a; }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text3);
+  font-style: italic;
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+/* MODALS */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 560px;
+  animation: slideUp 0.25s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  flex: 1;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text3);
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.modal-close:hover { background: var(--bg3); color: var(--text); }
+
+.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+
+.form-label {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.78rem;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.form-input, .form-textarea {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 10px 14px;
+  font-family: 'EB Garamond', serif;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+.form-input:focus, .form-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.form-textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+.form-input::placeholder, .form-textarea::placeholder { color: var(--text3); opacity: 0.6; }
+
+.form-hint {
+  font-size: 0.8rem;
+  color: var(--text3);
+  font-style: italic;
+}
+
+.stage-select {
+  display: flex;
+  gap: 8px;
+}
+.stage-opt {
+  flex: 1;
+  padding: 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--bg);
+  color: var(--text2);
+  cursor: pointer;
+  font-family: 'EB Garamond', serif;
+  font-size: 0.88rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+.stage-opt.active-idea { background: var(--stage-idea-bg); border-color: var(--stage-idea-border); color: #7ab87a; }
+.stage-opt.active-wip  { background: var(--stage-wip-bg);  border-color: var(--stage-wip-border);  color: #c8a060; }
+.stage-opt.active-done { background: var(--stage-done-bg); border-color: var(--stage-done-border); color: #6090c8; }
+
+.modal-footer {
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 8px 20px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: 'EB Garamond', serif;
+  font-size: 0.95rem;
+  border: 1px solid;
+  transition: all 0.2s;
+}
+.btn-secondary { background: var(--bg3); border-color: var(--border2); color: var(--text2); }
+.btn-secondary:hover { background: var(--bg4); color: var(--text); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-danger { background: #2e1010; border-color: var(--accent); color: var(--accent2); }
+.btn-danger:hover { background: var(--accent); color: #fff; }
+
+/* Settings warning */
+.settings-warning {
+  background: #2e1a0a;
+  border: 1px solid #5a3a18;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  color: #c89050;
+  line-height: 1.6;
+}
+
+/* Error/info messages */
+.msg {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+.msg-error { background: #2e1010; border: 1px solid #5a2020; color: #e06060; }
+.msg-success { background: #102010; border: 1px solid #205020; color: #60a060; }
+
+/* Setup notice */
+#setup-notice {
+  margin: 40px auto;
+  max-width: 480px;
+  text-align: center;
+  padding: 40px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+}
+#setup-notice h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  margin-bottom: 12px;
+}
+#setup-notice p {
+  color: var(--text2);
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* Divider ornament */
+.ornament {
+  text-align: center;
+  color: var(--text3);
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  opacity: 0.5;
+}
+
+/* Confirm dialog */
+.confirm-modal { max-width: 380px; }
+.confirm-text {
+  font-size: 1rem;
+  color: var(--text2);
+  line-height: 1.7;
+  padding: 20px 24px;
+}
+
+
+
+
+
+/* Public indicator & toggle */
+.public-badge {
+  font-size: 0.68rem;
+  font-family: 'Courier Prime', monospace;
+  background: #0e2a1a;
+  border: 1px solid #1e5a3a;
+  color: #4caf80;
+  padding: 1px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.public-toggle-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text3);
+  font-family: 'EB Garamond', serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.public-toggle-btn:hover { border-color: #1e5a3a; color: #4caf80; }
+.public-toggle-btn.is-public {
+  background: #0e2a1a; border-color: #1e5a3a; color: #4caf80;
+}
+
+/* File attachments */
+.file-list { display: flex; flex-direction: column; gap: 6px; }
+.file-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px;
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 6px;
+}
+.file-icon { font-size: 1rem; flex-shrink: 0; }
+.file-name {
+  flex: 1; font-family: 'Courier Prime', monospace; font-size: 0.8rem;
+  color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.file-size { font-family: 'Courier Prime', monospace; font-size: 0.72rem; color: var(--text3); flex-shrink: 0; }
+.file-remove {
+  background: transparent; border: none; color: var(--text3); cursor: pointer;
+  font-size: 1rem; line-height: 1; padding: 0 2px; transition: color 0.15s; flex-shrink: 0;
+}
+.file-remove:hover { color: var(--accent2); }
+.file-upload-area {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.file-upload-progress { font-size: 0.82rem; color: var(--green2); font-style: italic; }
+.file-upload-error { font-size: 0.82rem; color: var(--accent2); font-style: italic; }
+
+/* Card file chips */
+.card-files { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.card-file-chip {
+  font-family: 'Courier Prime', monospace; font-size: 0.72rem;
+  background: #1a1a2e; border: 1px solid #2a2a50; color: #8888cc;
+  padding: 2px 8px; border-radius: 3px; display: flex; align-items: center; gap: 4px;
+}
+
+/* Detail file list */
+.detail-file-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
+  margin-bottom: 6px;
+}
+.detail-file-item .file-name { font-size: 0.88rem; }
+.btn-download {
+  padding: 4px 12px; border-radius: 4px;
+  background: var(--bg4); border: 1px solid var(--border2); color: var(--text2);
+  font-family: 'EB Garamond', serif; font-size: 0.85rem; cursor: pointer;
+  transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+}
+.btn-download:hover { background: var(--blue); border-color: var(--blue2); color: #fff; }
+.btn-download.loading { opacity: 0.6; cursor: wait; }
+
+/* Detail modal */
+.detail-modal {
+  max-width: 580px;
+  width: 92vw;
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+}
+.detail-breadcrumb {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.72rem;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.detail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+.detail-img-wrap {
+  margin-bottom: 18px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg3);
+  max-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.detail-img {
+  width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  display: block;
+}
+.detail-content {
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--text2);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.detail-empty {
+  color: var(--text3);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+.detail-meta {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.72rem;
+  color: var(--text3);
+  flex-wrap: wrap;
+}
+
+/* Multi-select */
+#batch-bar {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 24px;
+  background: #1a1400;
+  border-bottom: 1px solid #4a3a10;
+  position: sticky;
+  top: 56px;
+  z-index: 90;
+}
+#batch-bar.visible { display: flex; }
+.batch-count {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.85rem;
+  color: var(--accent3);
+}
+.batch-spacer { flex: 1; }
+
+.card.selectable { cursor: pointer; }
+.card.selectable:hover { border-color: var(--text3); }
+.card.selected {
+  border-color: var(--accent3) !important;
+  background: #1a1600 !important;
+  box-shadow: 0 0 0 1px var(--accent3);
+}
+.card-checkbox {
+  width: 16px; height: 16px;
+  border: 2px solid var(--border2);
+  border-radius: 3px;
+  display: inline-block;
+  flex-shrink: 0;
+  margin-right: 6px;
+  vertical-align: middle;
+  background: var(--bg);
+  transition: all 0.15s;
+  position: relative;
+}
+.card.selected .card-checkbox {
+  background: var(--accent3);
+  border-color: var(--accent3);
+}
+.card.selected .card-checkbox::after {
+  content: '';
+  position: absolute;
+  left: 3px; top: 1px;
+  width: 5px; height: 8px;
+  border: 2px solid #000;
+  border-top: none; border-left: none;
+  transform: rotate(40deg);
+}
+.card-title-row { display: flex; align-items: flex-start; gap: 2px; }
+
+/* Batch move modal destination grid */
+.dest-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dest-cat-label {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.75rem;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+.dest-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.dest-opt {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  background: var(--bg);
+  color: var(--text2);
+  font-family: 'EB Garamond', serif;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.dest-opt:hover { background: var(--bg3); color: var(--text); border-color: var(--text3); }
+.dest-opt.selected-dest { background: var(--accent); border-color: var(--accent); color: #fff; }
+.dest-stage-row { display: flex; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.dest-stage-opt {
+  flex: 1; padding: 7px; text-align: center;
+  border-radius: var(--radius); border: 1px solid var(--border2);
+  background: var(--bg); color: var(--text2);
+  font-family: 'EB Garamond', serif; font-size: 0.88rem;
+  cursor: pointer; transition: all 0.2s;
+}
+.dest-stage-opt:hover { background: var(--bg3); }
+.dest-stage-opt.sel-ideas { background: var(--stage-idea-bg); border-color: var(--stage-idea-border); color: #7ab87a; }
+.dest-stage-opt.sel-wip   { background: var(--stage-wip-bg);  border-color: var(--stage-wip-border);  color: #c8a060; }
+.dest-stage-opt.sel-done  { background: var(--stage-done-bg); border-color: var(--stage-done-border); color: #6090c8; }
+
+/* Card image */
+.card-img-wrap {
+  margin: -14px -14px 10px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  overflow: hidden;
+  max-height: 180px;
+  background: var(--bg3);
+}
+.card-img {
+  width: 100%;
+  object-fit: cover;
+  max-height: 180px;
+  display: block;
+  transition: opacity 0.3s;
+  opacity: 0;
+}
+.card-img.loaded { opacity: 1; }
+.card-img-placeholder {
+  width: 100%; height: 60px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3); font-size: 0.78rem;
+  font-family: 'Courier Prime', monospace;
+}
+
+/* Image picker in modal */
+.img-picker { border: 1px solid var(--border2); border-radius: var(--radius); overflow: hidden; }
+.img-picker-tabs { display: flex; border-bottom: 1px solid var(--border2); }
+.img-picker-tab {
+  flex: 1; padding: 8px;
+  background: transparent; border: none; border-right: 1px solid var(--border2);
+  color: var(--text3); font-family: 'EB Garamond', serif; font-size: 0.88rem;
+  cursor: pointer; transition: all 0.2s;
+}
+.img-picker-tab:last-child { border-right: none; }
+.img-picker-tab.active { background: var(--bg3); color: var(--text); }
+.img-picker-tab:hover:not(.active) { background: var(--bg4); color: var(--text2); }
+.img-picker-body { padding: 12px; background: var(--bg); min-height: 60px; }
+
+.img-preview-wrap { display: flex; align-items: flex-start; gap: 12px; }
+.img-preview {
+  width: 90px; height: 70px; border-radius: 6px; object-fit: cover;
+  border: 1px solid var(--border2); background: var(--bg3); flex-shrink: 0;
+}
+.img-preview-path {
+  font-family: 'Courier Prime', monospace; font-size: 0.75rem;
+  color: var(--text3); word-break: break-all; margin-top: 4px;
+}
+.btn-clear-img {
+  font-size: 0.78rem; color: var(--accent); background: transparent;
+  border: 1px solid var(--accent); border-radius: 4px; padding: 2px 8px;
+  cursor: pointer; margin-top: 6px; display: inline-block;
+}
+.btn-clear-img:hover { background: #2e1010; }
+
+.upload-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; background: var(--bg3);
+  border: 1px dashed var(--border2); border-radius: var(--radius);
+  color: var(--text2); cursor: pointer; font-family: 'EB Garamond', serif;
+  font-size: 0.9rem; transition: all 0.2s;
+}
+.upload-label:hover { background: var(--bg4); color: var(--text); border-color: var(--text3); }
+.upload-input { display: none; }
+.upload-progress { font-size: 0.82rem; color: var(--green2); margin-top: 6px; font-style: italic; }
+
+.repo-img-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px; max-height: 200px; overflow-y: auto;
+}
+.repo-img-item { display: flex; flex-direction: column; gap: 3px; cursor: pointer; }
+.repo-img-thumb {
+  width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px;
+  border: 2px solid transparent; transition: all 0.2s; background: var(--bg3);
+}
+.repo-img-thumb:hover { border-color: var(--text3); }
+.repo-img-thumb.selected { border-color: var(--accent2); }
+.repo-img-name {
+  font-family: 'Courier Prime', monospace; font-size: 0.65rem; color: var(--text3);
+  text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.img-loading { color: var(--text3); font-size: 0.82rem; font-style: italic; }
+
+/* [hub-mobile] 手机端适配：阶段栏由 3 列堆成 1 列，头部/分类栏可换行/横滚，卡片按钮不竖排 */
+@media (max-width: 640px) {
+  #header { height: auto; min-height: 56px; padding: 8px 14px; gap: 10px; flex-wrap: wrap; }
+  #header h1 { font-size: 1.1rem; }
+  #cat-nav { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 12px 14px 0; }
+  .cat-tab { white-space: nowrap; flex: 0 0 auto; padding: 10px 14px; }
+  #stage-area { grid-template-columns: 1fr; gap: 16px; padding: 16px 14px 40px; min-height: auto; }
+  .stage-col { min-height: 0; }
+  .card-footer { flex-wrap: wrap; }
+  .card-action { white-space: nowrap; }
+}
+
+/* README instructions (hidden, for reference) */
+
+/* ============ LYRICS VAULT（音乐类 · 歌词库） ============ */
+#lyrics-area { padding: 20px 24px 60px; position: relative; z-index: 1; }
+.lyr-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.lyr-summary { color: var(--text3); font-size: 13px; font-family: 'Courier Prime', monospace; }
+.lyr-ai-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+.lyr-ai-row .form-input { max-width: 340px; }
+.lyr-ai-hint { color: var(--text3); font-size: 12px; }
+.lyr-group { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 16px; margin-bottom: 16px; }
+.lyr-group-none { opacity: .85; border-style: dashed; }
+.lyr-group-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.lyr-group-name { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 600; color: var(--text); }
+.lyr-group-count { font-family: 'Courier Prime', monospace; font-size: 12px; color: var(--text3);
+  border: 1px solid var(--border2); border-radius: 10px; padding: 0 8px; }
+.lyr-group-tools { margin-left: auto; display: flex; gap: 6px; }
+.lyr-ai-btn { color: var(--accent3); border-color: var(--border2); }
+.lyr-ai-err { color: var(--accent2); font-size: 12.5px; margin: 2px 0 6px; min-height: 0; }
+.lyr-analysis { background: var(--bg3); border: 1px solid var(--border2); border-left: 3px solid var(--accent3);
+  border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px; }
+.lyr-analysis-meta { font-family: 'Courier Prime', monospace; font-size: 11.5px; color: var(--text3); margin-bottom: 8px; }
+.lyr-stale { color: var(--accent3); }
+.lyr-analysis-body { white-space: pre-wrap; color: var(--text2); font-size: 13.5px; line-height: 1.75; }
+.lyr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.lyr-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 16px 10px; display: flex; flex-direction: column; gap: 8px; }
+.lyr-card:hover { border-color: var(--border2); }
+.lyr-text { font-family: 'EB Garamond', serif; font-size: 16.5px; line-height: 1.8; color: var(--text);
+  white-space: pre-wrap; }
+.lyr-text::before { content: '❝'; color: var(--accent); margin-right: 6px; font-size: 14px; }
+.lyr-src { font-size: 12.5px; color: var(--text2); text-align: right; }
+.lyr-note { font-size: 12.5px; color: var(--text3); border-top: 1px dashed var(--border); padding-top: 6px; }
+.lyr-foot { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: auto; }
+.lyr-chips { display: flex; gap: 5px; flex-wrap: wrap; flex: 1; }
+.lyr-chip { background: var(--tag-bg); color: var(--tag-text); border-radius: 10px; padding: 1px 8px; font-size: 11px; }
+.lyr-actions { display: flex; gap: 4px; }
+.lyr-empty { color: var(--text3); font-size: 13px; padding: 10px 2px; }
+.lyr-welcome { text-align: center; color: var(--text3); padding: 70px 20px; line-height: 2;
+  font-family: 'EB Garamond', serif; font-size: 15px; }
+.lyr-welcome-icon { font-size: 36px; margin-bottom: 10px; }
+.lyr-form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.lyr-gchecks { display: flex; gap: 8px 14px; flex-wrap: wrap; margin-bottom: 8px; }
+.lyr-gcheck { display: inline-flex; align-items: center; gap: 5px; color: var(--text2); font-size: 13.5px; cursor: pointer; }
+.lyr-gcheck input { accent-color: var(--accent); }
+.lyr-newgroup-row { display: flex; gap: 8px; }
+.lyr-newgroup-row .form-input { flex: 1; }
+@media (max-width: 700px) {
+  #lyrics-area { padding: 16px 14px 40px; }
+  .lyr-grid { grid-template-columns: 1fr; }
+  .lyr-form-2col { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   写作工作区（Writing Workspace）—— 浅色护眼主题
+   暖纸底 + 鼠尾草绿，避开纯白与纯黑，长时间阅读/写作不刺眼。
+   所有样式以 .ws- 前缀作用域，仅在 body.zone-writing 下生效。
+   ============================================================ */
+body.zone-writing {
+  --w-bg:#EFEDE4; --w-surf:#FBF9F3; --w-surf2:#F5F2E8; --w-surf3:#E9E5D7;
+  --w-bd:#DFD8C6; --w-bd2:#C9C0A8;
+  --w-tx:#3A372E; --w-tx2:#6C6656; --w-tx3:#9A937F;
+  --w-ac:#5E7F5F; --w-ac2:#4C6B4E; --w-acbg:#E4EBE2;
+  --w-amber:#A8762A; --w-amberbg:#F4EAD5;
+  --w-blue:#456B82; --w-bluebg:#E3EAEE;
+  --w-red:#A15547; --w-redbg:#F2E3E0;
+  background: var(--w-bg);
+  color: var(--w-tx);
+}
+body.zone-writing::before { opacity: .18; }
+body.zone-writing #header {
+  background: var(--w-surf); border-bottom: 1px solid var(--w-bd); color: var(--w-tx);
+}
+body.zone-writing #header h1, body.zone-writing #header h1 span { color: var(--w-tx); }
+body.zone-writing .header-btn {
+  background: var(--w-surf2); border: 1px solid var(--w-bd); color: var(--w-tx2);
+}
+body.zone-writing .header-btn:hover { background: var(--w-acbg); border-color: var(--w-ac); color: var(--w-ac2); }
+body.zone-writing #sync-status { color: var(--w-tx2); }
+
+/* ---------- 顶层分区切换 ---------- */
+#zone-nav {
+  position: relative; z-index: 2; display: flex; gap: 8px;
+  padding: 10px 20px 0; align-items: center; flex-wrap: wrap;
+}
+.zone-tab {
+  font-family: inherit; font-size: .95rem; cursor: pointer;
+  padding: 9px 20px; border-radius: 10px 10px 0 0;
+  background: transparent; border: 1px solid transparent; border-bottom: none;
+  color: var(--text3); transition: all .18s;
+}
+.zone-tab:hover { color: var(--text2); }
+.zone-tab.active { background: var(--bg3); border-color: var(--border2); color: var(--accent3); font-weight: 600; }
+body.zone-writing .zone-tab { color: var(--w-tx3); }
+body.zone-writing .zone-tab:hover { color: var(--w-tx2); }
+body.zone-writing .zone-tab.active {
+  background: var(--w-surf); border-color: var(--w-bd); color: var(--w-ac2);
+}
+
+/* ---------- 工作区骨架 ---------- */
+#ws-root { position: relative; z-index: 1; padding: 0 20px 60px; display: none; }
+body.zone-writing #ws-root { display: block; }
+body.zone-writing #cat-nav, body.zone-writing #sub-nav,
+body.zone-writing #stage-area, body.zone-writing #batch-bar { display: none !important; }
+
+.ws-projbar {
+  display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  background: var(--w-surf); border: 1px solid var(--w-bd); border-radius: 0 12px 12px 12px;
+  padding: 14px 18px; margin-bottom: 14px;
+}
+.ws-proj-sel {
+  font-family: inherit; font-size: 1rem; font-weight: 600; color: var(--w-tx);
+  background: var(--w-surf2); border: 1px solid var(--w-bd); border-radius: 8px;
+  padding: 7px 12px; cursor: pointer; max-width: 100%;
+}
+.ws-proj-desc { color: var(--w-tx2); font-size: .88rem; flex: 1; min-width: 160px; }
+.ws-progwrap { display: flex; align-items: center; gap: 10px; }
+.ws-progbar { width: 160px; height: 9px; border-radius: 99px; background: var(--w-surf3); overflow: hidden; }
+.ws-progbar i { display: block; height: 100%; background: linear-gradient(90deg, var(--w-ac), #7FA37F); transition: width .3s; }
+.ws-progtxt { font-size: .82rem; color: var(--w-tx2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.ws-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.ws-tab {
+  font-family: inherit; font-size: .9rem; cursor: pointer; padding: 8px 16px;
+  border-radius: 8px; background: var(--w-surf2); border: 1px solid var(--w-bd); color: var(--w-tx2);
+  transition: all .16s;
+}
+.ws-tab:hover { background: var(--w-acbg); }
+.ws-tab.active { background: var(--w-ac); border-color: var(--w-ac2); color: #FBF9F3; font-weight: 600; }
+
+.ws-body { display: grid; grid-template-columns: 246px 1fr; gap: 16px; align-items: start; }
+.ws-side {
+  background: var(--w-surf); border: 1px solid var(--w-bd); border-radius: 12px;
+  padding: 12px; position: sticky; top: 12px; max-height: calc(100vh - 30px); overflow-y: auto;
+}
+.ws-main { min-width: 0; }
+
+.ws-sgroup { margin-bottom: 10px; }
+.ws-sgroup > .ws-sg-title {
+  font-size: .78rem; font-weight: 700; color: var(--w-tx3); letter-spacing: .04em;
+  padding: 6px 8px; text-transform: none;
+}
+.ws-slink {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  font-family: inherit; font-size: .86rem; cursor: pointer;
+  padding: 7px 9px; border-radius: 7px; background: transparent; border: none;
+  color: var(--w-tx2); transition: all .14s;
+}
+.ws-slink:hover { background: var(--w-surf2); color: var(--w-tx); }
+.ws-slink.active { background: var(--w-acbg); color: var(--w-ac2); font-weight: 600; }
+.ws-slink .n { margin-left: auto; font-size: .76rem; color: var(--w-tx3); font-variant-numeric: tabular-nums; }
+.ws-slink.active .n { color: var(--w-ac); }
+
+/* ---------- 筛选条 ---------- */
+.ws-filter { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.ws-chip {
+  font-family: inherit; font-size: .82rem; cursor: pointer; padding: 5px 12px;
+  border-radius: 99px; background: var(--w-surf); border: 1px solid var(--w-bd); color: var(--w-tx2);
+}
+.ws-chip:hover { border-color: var(--w-bd2); }
+.ws-chip.active { background: var(--w-tx); border-color: var(--w-tx); color: var(--w-surf); font-weight: 600; }
+.ws-search {
+  font-family: inherit; font-size: .86rem; padding: 6px 12px; flex: 1; min-width: 140px;
+  background: var(--w-surf); border: 1px solid var(--w-bd); border-radius: 8px; color: var(--w-tx);
+}
+.ws-search:focus { outline: none; border-color: var(--w-ac); }
+
+/* ---------- 任务卡 ---------- */
+.ws-subhead {
+  font-size: .82rem; font-weight: 700; color: var(--w-tx3);
+  margin: 16px 0 8px; padding-bottom: 5px; border-bottom: 1px solid var(--w-bd);
+}
+.ws-task {
+  background: var(--w-surf); border: 1px solid var(--w-bd); border-radius: 10px;
+  margin-bottom: 8px; overflow: hidden; transition: border-color .16s;
+}
+.ws-task.open { border-color: var(--w-ac); box-shadow: 0 2px 12px rgba(94,127,95,.12); }
+.ws-thead {
+  display: flex; align-items: center; gap: 10px; padding: 11px 14px; cursor: pointer;
+  user-select: none;
+}
+.ws-thead:hover { background: var(--w-surf2); }
+.ws-ttitle { font-size: .92rem; color: var(--w-tx); flex: 1; min-width: 0; }
+.ws-tprev { font-size: .8rem; color: var(--w-tx3); margin-top: 2px; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+.ws-badge {
+  font-size: .72rem; padding: 3px 9px; border-radius: 99px; white-space: nowrap; font-weight: 600;
+}
+.ws-badge.todo  { background: var(--w-surf3); color: var(--w-tx3); }
+.ws-badge.draft { background: var(--w-amberbg); color: var(--w-amber); }
+.ws-badge.done  { background: var(--w-acbg); color: var(--w-ac2); }
+.ws-badge.chg   { background: var(--w-bluebg); color: var(--w-blue); }
+.ws-badge.int   { background: var(--w-surf3); color: var(--w-tx3); border: 1px dashed var(--w-bd2); }
+
+.ws-tbody { padding: 0 14px 14px; border-top: 1px solid var(--w-bd); }
+.ws-ctx { margin: 12px 0; }
+.ws-ctx summary {
+  cursor: pointer; font-size: .82rem; color: var(--w-tx2); padding: 6px 0; user-select: none;
+}
+.ws-ctx summary:hover { color: var(--w-ac2); }
+.ws-ctxtable { width: 100%; border-collapse: collapse; font-size: .84rem; margin-top: 6px; }
+.ws-ctxtable td { padding: 6px 9px; border-bottom: 1px solid var(--w-bd); vertical-align: top; }
+.ws-ctxtable td:first-child {
+  width: 132px; color: var(--w-tx3); white-space: nowrap; font-size: .8rem;
+}
+.ws-ctxtable td:last-child { color: var(--w-tx2); line-height: 1.55; }
+
+.ws-old {
+  background: var(--w-surf2); border-left: 3px solid var(--w-bd2); border-radius: 0 7px 7px 0;
+  padding: 9px 12px; margin: 10px 0; font-size: .85rem; color: var(--w-tx2); line-height: 1.6;
+  white-space: pre-wrap;
+}
+.ws-old .lbl { display: block; font-size: .74rem; color: var(--w-tx3); margin-bottom: 4px; }
+
+.ws-field { margin: 12px 0; }
+.ws-flabel {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: .82rem; color: var(--w-tx2); margin-bottom: 5px; font-weight: 600;
+}
+.ws-flabel .cnt { font-size: .76rem; color: var(--w-tx3); font-weight: 400; font-variant-numeric: tabular-nums; }
+.ws-input, .ws-textarea {
+  width: 100%; font-family: inherit; font-size: .95rem; line-height: 1.75; color: var(--w-tx);
+  background: #FFFDF8; border: 1px solid var(--w-bd); border-radius: 8px; padding: 10px 12px;
+  resize: vertical;
+}
+.ws-input:focus, .ws-textarea:focus { outline: none; border-color: var(--w-ac); background: #fff; }
+.ws-textarea { min-height: 96px; }
+
+.ws-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+.ws-btn {
+  font-family: inherit; font-size: .85rem; cursor: pointer; padding: 7px 15px; border-radius: 8px;
+  background: var(--w-surf2); border: 1px solid var(--w-bd); color: var(--w-tx2); transition: all .16s;
+}
+.ws-btn:hover { background: var(--w-acbg); border-color: var(--w-ac); color: var(--w-ac2); }
+.ws-btn.primary { background: var(--w-ac); border-color: var(--w-ac2); color: #FBF9F3; font-weight: 600; }
+.ws-btn.primary:hover { background: var(--w-ac2); color: #fff; }
+.ws-btn.ghost { background: transparent; border-color: transparent; color: var(--w-tx3); }
+.ws-btn.ghost:hover { color: var(--w-red); background: var(--w-redbg); border-color: transparent; }
+.ws-spacer { flex: 1; }
+
+.ws-vers { margin-top: 10px; }
+.ws-vers summary { cursor: pointer; font-size: .8rem; color: var(--w-tx3); padding: 5px 0; }
+.ws-vers summary:hover { color: var(--w-ac2); }
+.ws-vrow {
+  display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 7px;
+  background: var(--w-surf2); margin-top: 6px; font-size: .82rem;
+}
+.ws-vrow .vno { color: var(--w-ac2); font-weight: 700; white-space: nowrap; }
+.ws-vrow .vtx { flex: 1; color: var(--w-tx2); white-space: pre-wrap; line-height: 1.55; min-width: 0; }
+.ws-vrow .vat { color: var(--w-tx3); font-size: .74rem; white-space: nowrap; }
+
+/* ---------- 文档 ---------- */
+.ws-docwrap { background: var(--w-surf); border: 1px solid var(--w-bd); border-radius: 12px; padding: 20px 24px; }
+.ws-dochead {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--w-bd);
+}
+.ws-doctitle { font-size: 1.15rem; font-weight: 700; color: var(--w-tx); flex: 1; min-width: 0; }
+.ws-docedit {
+  width: 100%; min-height: 62vh; font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-size: .84rem; line-height: 1.7; color: var(--w-tx);
+  background: #FFFDF8; border: 1px solid var(--w-bd); border-radius: 8px; padding: 14px;
+  resize: vertical;
+}
+.ws-docedit:focus { outline: none; border-color: var(--w-ac); }
+
+/* 精简 Markdown 渲染 */
+.ws-md { font-size: .93rem; line-height: 1.8; color: var(--w-tx); overflow-wrap: break-word; }
+.ws-md h1 { font-size: 1.4rem; margin: 22px 0 12px; color: var(--w-tx); border-bottom: 2px solid var(--w-bd); padding-bottom: 6px; }
+.ws-md h2 { font-size: 1.18rem; margin: 20px 0 10px; color: var(--w-ac2); }
+.ws-md h3 { font-size: 1.03rem; margin: 16px 0 8px; color: var(--w-tx); }
+.ws-md h4 { font-size: .95rem; margin: 14px 0 6px; color: var(--w-tx2); }
+.ws-md p { margin: 9px 0; }
+.ws-md ul, .ws-md ol { margin: 9px 0 9px 22px; }
+.ws-md li { margin: 4px 0; }
+.ws-md strong { color: var(--w-tx); font-weight: 700; }
+.ws-md em { color: var(--w-tx2); }
+.ws-md code {
+  background: var(--w-surf3); padding: 2px 6px; border-radius: 4px;
+  font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: .86em; color: var(--w-amber);
+}
+.ws-md blockquote {
+  border-left: 3px solid var(--w-ac); background: var(--w-acbg); margin: 12px 0;
+  padding: 9px 14px; border-radius: 0 7px 7px 0; color: var(--w-tx2);
+}
+.ws-md hr { border: none; border-top: 1px solid var(--w-bd); margin: 18px 0; }
+.ws-md a { color: var(--w-blue); }
+.ws-mdtable { overflow-x: auto; margin: 12px 0; }
+.ws-md table { border-collapse: collapse; font-size: .86rem; min-width: 100%; }
+.ws-md th, .ws-md td { border: 1px solid var(--w-bd); padding: 7px 10px; text-align: left; vertical-align: top; }
+.ws-md th { background: var(--w-surf3); font-weight: 700; color: var(--w-tx); white-space: nowrap; }
+.ws-md tr:nth-child(even) td { background: var(--w-surf2); }
+.ws-md del { color: var(--w-tx3); }
+
+/* ---------- 导出 ---------- */
+.ws-card {
+  background: var(--w-surf); border: 1px solid var(--w-bd); border-radius: 12px;
+  padding: 18px 20px; margin-bottom: 14px;
+}
+.ws-card h3 { font-size: 1rem; color: var(--w-tx); margin-bottom: 6px; }
+.ws-card p { font-size: .86rem; color: var(--w-tx2); line-height: 1.65; margin-bottom: 12px; }
+.ws-statrow { display: flex; gap: 22px; flex-wrap: wrap; margin-bottom: 14px; }
+.ws-stat { }
+.ws-stat b { display: block; font-size: 1.5rem; color: var(--w-ac2); font-variant-numeric: tabular-nums; }
+.ws-stat span { font-size: .78rem; color: var(--w-tx3); }
+.ws-hint { font-size: .8rem; color: var(--w-tx3); line-height: 1.6; margin-top: 8px; }
+
+.ws-empty { text-align: center; padding: 60px 20px; color: var(--w-tx3); }
+.ws-empty .big { font-size: 2.4rem; margin-bottom: 12px; opacity: .55; }
+.ws-empty p { font-size: .9rem; line-height: 1.7; }
+
+@media (max-width: 860px) {
+  #ws-root { padding: 0 12px 50px; }
+  .ws-body { grid-template-columns: 1fr; }
+  .ws-side { position: static; max-height: 260px; }
+  .ws-progbar { width: 110px; }
+  .ws-ctxtable td:first-child { width: 92px; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="header">
+  <h1 id="app-h1">✦ 创意<span>想法库</span></h1>
+  <div class="header-spacer"></div>
+  <div id="sync-status" class="idle">
+    <div class="sync-dot"></div>
+    <span id="sync-text">未配置</span>
+  </div>
+  <button class="header-btn" onclick="manualSync()" id="sync-btn" data-i18n="syncBtn">⟳ 同步</button>
+  <span id="brain-headbtns" style="display:contents">
+  <button class="header-btn" onclick="exportPublicItems()" data-i18n="exportBtn" data-i18n-title="exportBtnT" title="下载已标记为「公开展示」的条目">⬇ 导出展示</button>
+  <button class="header-btn" id="select-mode-btn" onclick="toggleSelectMode()" data-i18n="selectBtn">☑ 多选</button>
+  </span>
+  <button class="header-btn" id="langBtn" onclick="toggleLang()" title="中 / EN">EN</button>
+  <button class="header-btn" onclick="showSettings()" data-i18n="settingsBtn">⚙ 设置</button>
+</header>
+
+<!-- ZONE NAV：顶层分区（写作工作区 / 脑洞区） -->
+<nav id="zone-nav">
+  <button class="zone-tab" data-zone="writing" onclick="setZone('writing')">✍️ <span data-i18n="zone_writing">写作工作区</span></button>
+  <button class="zone-tab active" data-zone="brain" onclick="setZone('brain')">💡 <span data-i18n="zone_brain">脑洞区</span></button>
+</nav>
+
+<!-- 写作工作区根容器（内容全部来自私有数据文件，壳内不含任何项目内容） -->
+<div id="ws-root"></div>
+
+<!-- CATEGORY NAV -->
+<nav id="cat-nav">
+  <button class="cat-tab active" onclick="setCategory('mystery')" id="cat-mystery">
+    <span class="cat-icon">🔍</span><span data-i18n="cat_mystery">推理类</span>
+  </button>
+  <button class="cat-tab" onclick="setCategory('music')" id="cat-music">
+    <span class="cat-icon">🎵</span><span data-i18n="cat_music">音乐类</span>
+  </button>
+  <button class="cat-tab" onclick="setCategory('literature')" id="cat-literature">
+    <span class="cat-icon">📖</span><span data-i18n="cat_literature">文学类</span>
+  </button>
+</nav>
+
+<!-- SUB NAV -->
+<nav id="sub-nav"></nav>
+
+<!-- BATCH BAR -->
+<div id="batch-bar">
+  <span class="batch-count" id="batch-count-text"></span>
+  <button class="header-btn" onclick="openBatchMove()" data-i18n="batchMove">↗ 移动到...</button>
+  <span class="batch-spacer"></span>
+  <button class="header-btn" onclick="cancelSelectMode()" data-i18n="batchCancel">✕ 取消多选</button>
+</div>
+
+<!-- STAGE AREA -->
+<main id="stage-area">
+  <div class="stage-col" id="col-ideas">
+    <div class="stage-header ideas">
+      <span class="stage-title" data-i18n="st_ideas">💡 想法区</span>
+      <span class="stage-count" id="count-ideas">0</span>
+    </div>
+    <div class="stage-body ideas" id="body-ideas">
+      <button class="add-btn" onclick="openAdd('ideas')" data-i18n="addIdeas">＋ 新增想法</button>
+    </div>
+  </div>
+  <div class="stage-col" id="col-wip">
+    <div class="stage-header wip">
+      <span class="stage-title" data-i18n="st_wip">🔨 半成品区</span>
+      <span class="stage-count" id="count-wip">0</span>
+    </div>
+    <div class="stage-body wip" id="body-wip">
+      <button class="add-btn" onclick="openAdd('wip')" data-i18n="addWip">＋ 新增</button>
+    </div>
+  </div>
+  <div class="stage-col" id="col-done">
+    <div class="stage-header done">
+      <span class="stage-title" data-i18n="st_done">✨ 成品区</span>
+      <span class="stage-count" id="count-done">0</span>
+    </div>
+    <div class="stage-body done" id="body-done">
+      <button class="add-btn" onclick="openAdd('done')" data-i18n="addDone">＋ 新增</button>
+    </div>
+  </div>
+</main>
+
+<!-- LYRICS AREA（音乐类 · 歌词库，JS 渲染） -->
+<section id="lyrics-area" style="display:none"></section>
+
+<!-- MODALS (injected by JS) -->
+<div id="modal-root"></div>
+
+<script>
+// ============================================================
+// DATA MODEL
+// ============================================================
+const CATEGORIES = {
+  mystery: {
+    label: '推理类', labelEn: 'Mystery',
+    icon: '🔍',
+    subs: {
+      detective_novel: '推理小说',
+      murder_mystery: '剧本杀',
+      turtle_soup: '海龟汤',
+      trpg: '跑团'
+    },
+    subsEn: {
+      detective_novel: 'Detective Novel',
+      murder_mystery: 'Murder Mystery',
+      turtle_soup: 'Situation Puzzle',
+      trpg: 'TRPG'
+    }
+  },
+  music: {
+    label: '音乐类', labelEn: 'Music',
+    icon: '🎵',
+    subs: null // flat
+  },
+  literature: {
+    label: '文学类', labelEn: 'Literature',
+    icon: '📖',
+    subs: {
+      essay: '散文',
+      popular_novel: '通俗小说',
+      poetry: '诗歌'
+    },
+    subsEn: {
+      essay: 'Essay',
+      popular_novel: 'Popular Fiction',
+      poetry: 'Poetry'
+    }
+  }
+};
+
+const STAGES = ['ideas', 'wip', 'done'];
+const STAGE_NAMES = { ideas: '想法区', wip: '半成品区', done: '成品区' };
+const STAGE_NAMES_EN = { ideas: 'Ideas', wip: 'In Progress', done: 'Done' };
+const STAGE_SHORT = { ideas: '想法', wip: '半成品', done: '成品' };
+const STAGE_SHORT_EN = { ideas: 'Idea', wip: 'Draft', done: 'Piece' };
+const GITHUB_API = 'https://api.github.com';
+
+// ============================================================
+// 双语 i18n（全站共享 pha-lang，默认 zh）
+// ============================================================
+let lang = (() => { try { return localStorage.getItem('pha-lang') === 'en' ? 'en' : 'zh'; } catch { return 'zh'; } })();
+const T = (zh, en) => lang === 'en' ? en : zh;
+const catLabel = c => { const v = CATEGORIES[c]; return v ? (lang === 'en' ? v.labelEn : v.label) : c; };
+const subLabel = (c, s) => { const v = CATEGORIES[c]; if (!v || !s) return ''; return lang === 'en' ? (v.subsEn && v.subsEn[s]) || s : (v.subs && v.subs[s]) || s; };
+const stageName = s => lang === 'en' ? STAGE_NAMES_EN[s] : STAGE_NAMES[s];
+const stageShort = s => lang === 'en' ? STAGE_SHORT_EN[s] : STAGE_SHORT[s];
+const I18N = {
+  appTitle:{zh:'创意',en:'Creative'}, appTitle2:{zh:'想法库',en:' Ideas'},
+  syncBtn:{zh:'⟳ 同步',en:'⟳ Sync'},
+  exportBtn:{zh:'⬇ 导出展示',en:'⬇ Export public'},
+  exportBtnT:{zh:'下载已标记为「公开展示」的条目',en:'Download items marked as public'},
+  selectBtn:{zh:'☑ 多选',en:'☑ Select'},
+  settingsBtn:{zh:'⚙ 设置',en:'⚙ Settings'},
+  zone_writing:{zh:'写作工作区',en:'Writing'},
+  zone_brain:{zh:'脑洞区',en:'Ideas'},
+  cat_mystery:{zh:'推理类',en:'Mystery'},
+  cat_music:{zh:'音乐类',en:'Music'},
+  cat_literature:{zh:'文学类',en:'Literature'},
+  batchMove:{zh:'↗ 移动到...',en:'↗ Move to...'},
+  batchCancel:{zh:'✕ 取消多选',en:'✕ Cancel'},
+  st_ideas:{zh:'💡 想法区',en:'💡 Ideas'},
+  st_wip:{zh:'🔨 半成品区',en:'🔨 In Progress'},
+  st_done:{zh:'✨ 成品区',en:'✨ Done'},
+  addIdeas:{zh:'＋ 新增想法',en:'＋ New idea'},
+  addWip:{zh:'＋ 新增',en:'＋ New'},
+  addDone:{zh:'＋ 新增',en:'＋ New'},
+  langBtn:{zh:'EN',en:'中'},
+};
+const Ls = k => (I18N[k] || {zh:k,en:k})[lang];
+function applyStatic() {
+  document.documentElement.lang = lang === 'en' ? 'en' : 'zh';
+  document.title = lang === 'en' ? 'Creative Ideas' : '创意想法库';
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = Ls(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = Ls(el.dataset.i18nTitle); });
+  const h1 = document.getElementById('app-h1');
+  if (h1) h1.innerHTML = lang === 'en' ? '✦ Creative<span> Ideas</span>' : '✦ 创意<span>想法库</span>';
+  const lb = document.getElementById('langBtn'); if (lb) lb.textContent = Ls('langBtn');
+  const smb = document.getElementById('select-mode-btn');
+  if (smb && !state.selectMode) smb.textContent = Ls('selectBtn');
+}
+function toggleLang() {
+  lang = lang === 'en' ? 'zh' : 'en';
+  try { localStorage.setItem('pha-lang', lang); } catch {}
+  applyStatic();
+  renderSubNav();
+  renderCards();
+  updateBatchBar();
+}
+
+function defaultData() {
+  const d = { _meta: { version: '1.0', last_updated: new Date().toISOString() } };
+  for (const [cat, info] of Object.entries(CATEGORIES)) {
+    if (info.subs) {
+      d[cat] = {};
+      for (const sub of Object.keys(info.subs)) {
+        d[cat][sub] = { ideas: [], wip: [], done: [] };
+      }
+    } else {
+      d[cat] = { ideas: [], wip: [], done: [] };
+    }
+  }
+  // 歌词库（音乐类子区域）：喜欢的歌词 + 自定义分组 + 每组 AI 共性分析。纯私人收藏，不参与「公开展示」导出。
+  d.lyrics = { groups: [], items: [] };
+  return d;
+}
+
+// App state
+let state = {
+  category: 'mystery',
+  subtype: 'detective_novel',
+  musicView: 'stages',   // 音乐类子页签：'stages' 创作区 | 'lyrics' 歌词库
+  data: defaultData(),
+  sha: null,
+  settings: { token: '', owner: '', repo: '' },
+  syncTimer: null,
+  dirty: false,
+  selectMode: false,
+  selectedItems: new Map(),
+  saving: false,
+  // ---- 写作工作区 ----
+  zone: 'brain',        // 'brain' 脑洞区 | 'writing' 写作工作区
+  ws: null,             // writing-workspace.json 内容
+  wsSha: null,
+  wsProj: null,
+  wsTab: 'tasks',       // tasks | docs | export
+  wsGroup: null, wsFilter: 'all', wsKind: 'kall', wsQuery: '',
+  wsOpenTask: null, wsDoc: null, wsDocEditing: false,
+  wsSaving: false, wsTimer: null,
+  deliv: null, delivSha: null, delivKeys: null, delivKeysSha: null, delivErr: null
+};
+
+// ============================================================
+// SETTINGS (localStorage for deployed app)
+// ============================================================
+function loadSettings() {
+  try {
+    const s = localStorage.getItem('writing_settings');
+    if (s) state.settings = JSON.parse(s);
+  } catch(e) {}
+  /* [hub-portal] 从共享配置 pha-config 补全 owner/repo/token（仅填空缺，不覆盖已填，不改 path） */
+  try{var _pha=JSON.parse(localStorage.getItem('pha-config')||'null');if(_pha){if(!state.settings.owner&&_pha.owner)state.settings.owner=_pha.owner;if(!state.settings.repo&&_pha.repo)state.settings.repo=_pha.repo;if(!state.settings.token&&_pha.token)state.settings.token=_pha.token;}}catch(e){}
+}
+function saveSettings() {
+  try { localStorage.setItem('writing_settings', JSON.stringify(state.settings)); } catch(e) {}
+}
+
+function hasSettings() {
+  return state.settings.token && state.settings.owner && state.settings.repo;
+}
+
+// ============================================================
+// GITHUB API
+// ============================================================
+function b64Encode(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function b64Decode(str) {
+  return decodeURIComponent(escape(atob(str.replace(/\n/g, ''))));
+}
+
+async function githubGet(path) {
+  const r = await fetch(`${GITHUB_API}${path}`, {
+    headers: {
+      'Authorization': `Bearer ${state.settings.token}`,
+      'Accept': 'application/vnd.github.v3+json'
+    }
+  });
+  return r;
+}
+
+async function githubPut(path, body) {
+  const r = await fetch(`${GITHUB_API}${path}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${state.settings.token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+  return r;
+}
+
+async function loadFromGitHub() {
+  if (!hasSettings()) return false;
+  setSyncStatus('syncing', T('读取中...','Loading...'));
+  try {
+    const { owner, repo } = state.settings;
+    const r = await githubGet(`/repos/${owner}/${repo}/contents/writing.json`);
+    if (r.status === 404) {
+      // File doesn't exist, use default and create it
+      state.sha = null;
+      await saveToGitHub(true);
+      setSyncStatus('success', T('已初始化','Initialized'));
+      setTimeout(() => setSyncStatus('idle', T('已同步','Synced')), 2000);
+      return true;
+    }
+    if (!r.ok) {
+      const err = await r.json();
+      setSyncStatus('error', T('读取失败: ','Load failed: ') + (err.message || r.status));
+      return false;
+    }
+    const json = await r.json();
+    const parsed = JSON.parse(b64Decode(json.content));
+    state.data = mergeData(defaultData(), parsed);
+    state.sha = json.sha;
+    state.dirty = false;
+    setSyncStatus('success', T('已同步','Synced'));
+    setTimeout(() => setSyncStatus('idle', T('已同步','Synced')), 2000);
+    return true;
+  } catch(e) {
+    setSyncStatus('error', T('网络错误','Network error'));
+    console.error(e);
+    return false;
+  }
+}
+
+function mergeData(defaults, loaded) {
+  // Deep merge to handle schema additions
+  const result = JSON.parse(JSON.stringify(defaults));
+  for (const key of Object.keys(loaded)) {
+    if (key === '_meta') { result._meta = loaded._meta; continue; }
+    if (key === 'lyrics') {   // 歌词库：整体保留（generic 循环只认分类/阶段结构，会剥掉它）
+      const L = loaded.lyrics || {};
+      result.lyrics = {
+        groups: Array.isArray(L.groups) ? L.groups : [],
+        items: Array.isArray(L.items) ? L.items : []
+      };
+      continue;
+    }
+    if (result[key] && typeof result[key] === 'object') {
+      for (const sub of Object.keys(loaded[key])) {
+        if (result[key][sub] !== undefined) {
+          if (Array.isArray(result[key][sub])) {
+            result[key][sub] = loaded[key][sub] || [];
+          } else if (typeof result[key][sub] === 'object') {
+            for (const stage of STAGES) {
+              result[key][sub][stage] = (loaded[key][sub] && loaded[key][sub][stage]) || [];
+            }
+          }
+        }
+      }
+    }
+  }
+  return result;
+}
+
+async function saveToGitHub(silent, _retrying = false) {
+  if (!hasSettings()) return false;
+  // Prevent concurrent saves — if already saving, reschedule and let it finish first
+  if (state.saving && !_retrying) {
+    if (state.syncTimer) clearTimeout(state.syncTimer);
+    state.syncTimer = setTimeout(() => saveToGitHub(false), 1500);
+    return false;
+  }
+  state.saving = true;
+  if (!silent) setSyncStatus('syncing', T('保存中...','Saving...'));
+  try {
+    state.data._meta.last_updated = new Date().toISOString();
+    const content = b64Encode(JSON.stringify(state.data, null, 2));
+    const { owner, repo } = state.settings;
+    const body = {
+      message: `Update writing.json - ${new Date().toLocaleString('zh-CN')}`,
+      content,
+      ...(state.sha ? { sha: state.sha } : {})
+    };
+    const r = await githubPut(`/repos/${owner}/${repo}/contents/writing.json`, body);
+
+    // 409 = SHA stale (file changed externally or concurrent save). Re-fetch latest SHA and retry once.
+    if (r.status === 409 && !_retrying) {
+      setSyncStatus('syncing', T('SHA冲突，重新同步...','SHA conflict, re-syncing...'));
+      const refetch = await githubGet(`/repos/${owner}/${repo}/contents/writing.json`);
+      if (refetch.ok) {
+        const json = await refetch.json();
+        state.sha = json.sha;
+      } else {
+        state.sha = null;
+      }
+      state.saving = false;
+      return saveToGitHub(silent, true);
+    }
+
+    if (!r.ok) {
+      const err = await r.json();
+      setSyncStatus('error', T('保存失败: ','Save failed: ') + (err.message || r.status));
+      state.saving = false;
+      return false;
+    }
+    const result = await r.json();
+    state.sha = result.content.sha;
+    state.dirty = false;
+    state.saving = false;
+    if (!silent) {
+      setSyncStatus('success', T('已保存','Saved'));
+      setTimeout(() => setSyncStatus('idle', T('已同步','Synced')), 2000);
+    }
+    return true;
+  } catch(e) {
+    setSyncStatus('error', T('保存失败','Save failed'));
+    state.saving = false;
+    console.error(e);
+    return false;
+  }
+}
+
+function scheduleSave() {
+  state.dirty = true;
+  setSyncStatus('unsaved', T('未保存','Unsaved'));
+  if (state.syncTimer) clearTimeout(state.syncTimer);
+  if (hasSettings()) {
+    state.syncTimer = setTimeout(() => saveToGitHub(false), 2000);
+  }
+}
+
+async function manualSync() {
+  if (!hasSettings()) { showSettings(); return; }
+  await loadFromGitHub();
+  renderAll();
+}
+
+
+
+
+// ============================================================
+// PUBLIC FLAG & EXPORT
+// ============================================================
+function togglePublicItem(id, stage, btnEl) {
+  const cat = state.category;
+  const sub = state.subtype;
+  const items = sub ? state.data[cat][sub][stage] : state.data[cat][stage];
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  item.public = !item.public;
+  // Update button in-place — no need to re-render the whole modal
+  if (btnEl) {
+    btnEl.className = 'public-toggle-btn' + (item.public ? ' is-public' : '');
+    btnEl.innerHTML = item.public ? T('🌐 已公开','🌐 Public') : T('○ 设为公开','○ Make public');
+  }
+  // Update card badge in-place if visible
+  const card = document.getElementById('card-' + id);
+  if (card) {
+    const titleRow = card.querySelector('.card-title-row');
+    if (titleRow) {
+      let badge = titleRow.querySelector('.public-badge');
+      if (item.public && !badge) {
+        badge = document.createElement('span');
+        badge.className = 'public-badge';
+        badge.textContent = T('公开','Public');
+        titleRow.appendChild(badge);
+      } else if (!item.public && badge) {
+        badge.remove();
+      }
+    }
+  }
+  scheduleSave();
+}
+
+function exportPublicItems() {
+  // Collect all public items across every category / subtype / stage
+  const sectionMap = new Map(); // sectionKey -> { type, label, catLabel, items[] }
+
+  for (const [catKey, catInfo] of Object.entries(CATEGORIES)) {
+    if (catInfo.subs) {
+      for (const [subKey, subLabel] of Object.entries(catInfo.subs)) {
+        for (const stage of STAGES) {
+          const arr = (state.data[catKey] && state.data[catKey][subKey] && state.data[catKey][subKey][stage]) || [];
+          for (const item of arr) {
+            if (!item.public) continue;
+            if (!sectionMap.has(subKey)) {
+              sectionMap.set(subKey, { type: subKey, label: subLabel, catLabel: catInfo.label, items: [] });
+            }
+            sectionMap.get(subKey).items.push(itemToExport(item, catInfo.label));
+          }
+        }
+      }
+    } else {
+      for (const stage of STAGES) {
+        const arr = (state.data[catKey] && state.data[catKey][stage]) || [];
+        for (const item of arr) {
+          if (!item.public) continue;
+          if (!sectionMap.has(catKey)) {
+            sectionMap.set(catKey, { type: catKey, label: catInfo.label, catLabel: catInfo.label, items: [] });
+          }
+          sectionMap.get(catKey).items.push(itemToExport(item, catInfo.label));
+        }
+      }
+    }
+  }
+
+  if (!sectionMap.size) {
+    alert(T('暂无标记为「公开展示」的条目，请先在条目详情中点击「设为公开」。','No items marked as public yet. Open an item and click “Make public” first.'));
+    return;
+  }
+
+  const exportData = {
+    dbId: 'writing',
+    title: '创意想法库',
+    generatedAt: new Date().toISOString(),
+    sections: Array.from(sectionMap.values()).map(s => ({
+      type: s.type,
+      label: s.label,
+      items: s.items
+    }))
+  };
+
+  const json = JSON.stringify(exportData, null, 2);
+  const count = Array.from(sectionMap.values()).reduce((n, s) => n + s.items.length, 0);
+  publishPublic('writing.public.json', json, count);
+}
+
+// 发布公开数据：直接写入 GitHub 数据仓库（与主数据同仓库，根目录）；
+// 未配置 GitHub 或发布失败时回退为本地下载
+async function publishPublic(filename, json, count) {
+  if (hasSettings()) {
+    try {
+      setSyncStatus('syncing', T('发布公开数据...','Publishing...'));
+      const PUBLIC_REPO = 'Database-Public'; // 公开数据专用仓库（public）——网站只从这里读取，碰不到私有库
+      const { owner } = state.settings;
+      const head = await githubGet(`/repos/${owner}/${PUBLIC_REPO}/contents/${filename}`);
+      const sha = head.ok ? (await head.json()).sha : null;
+      const r = await githubPut(`/repos/${owner}/${PUBLIC_REPO}/contents/${filename}`, {
+        message: `publish ${filename} (${count} entries)`,
+        content: b64Encode(json),
+        ...(sha ? { sha } : {})
+      });
+      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || 'HTTP ' + r.status); }
+      setSyncStatus('success', T(`已发布 ${count} 条公开内容`,`Published ${count} public items`));
+      return;
+    } catch (e) {
+      setSyncStatus('error', T('发布失败，已转为本地下载','Publish failed, fell back to local download'));
+    }
+  }
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+
+function itemToExport(item, catLabel) {
+  // summary = first non-empty line, capped at 80 chars
+  const firstLine = (item.content || '').split('\n').find(l => l.trim()) || '';
+  const summary = firstLine.length > 80 ? firstLine.slice(0, 80) + '…' : firstLine;
+  return {
+    id: item.id || '',
+    name: item.title || '',
+    summary: summary,
+    category: catLabel || '',
+    content: item.content || '',
+    tags: item.tags || [],
+    updatedAt: item.updated_at || ''
+  };
+}
+
+// ============================================================
+// MULTI-SELECT
+// ============================================================
+// state.selectMode and state.selectedItems added to state object below
+
+function toggleSelectMode() {
+  state.selectMode = !state.selectMode;
+  if (!state.selectMode) {
+    state.selectedItems.clear();
+  }
+  document.getElementById('select-mode-btn').textContent = state.selectMode ? T('✕ 退出多选','✕ Exit select') : Ls('selectBtn');
+  document.getElementById('select-mode-btn').style.background = state.selectMode ? 'var(--accent3)' : '';
+  document.getElementById('select-mode-btn').style.color = state.selectMode ? '#000' : '';
+  document.getElementById('select-mode-btn').style.borderColor = state.selectMode ? 'var(--accent3)' : '';
+  updateBatchBar();
+  renderCards();
+}
+
+function cancelSelectMode() {
+  state.selectMode = false;
+  state.selectedItems.clear();
+  document.getElementById('select-mode-btn').textContent = Ls('selectBtn');
+  document.getElementById('select-mode-btn').style.cssText = '';
+  updateBatchBar();
+  renderCards();
+}
+
+function toggleSelectItem(id, stage, cardEl) {
+  if (!state.selectMode) return;
+  const key = id + '|' + stage;
+  if (state.selectedItems.has(key)) {
+    state.selectedItems.delete(key);
+    cardEl.classList.remove('selected');
+  } else {
+    state.selectedItems.set(key, stage);
+    cardEl.classList.add('selected');
+  }
+  updateBatchBar();
+}
+
+function updateBatchBar() {
+  const bar = document.getElementById('batch-bar');
+  const count = state.selectedItems.size;
+  if (state.selectMode) {
+    bar.classList.add('visible');
+    document.getElementById('batch-count-text').textContent = T('已选 ' + count + ' 条', count + ' selected');
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+// Destination state for batch move modal
+let batchDest = { cat: null, sub: null, stage: 'ideas' };
+
+function openBatchMove() {
+  if (state.selectedItems.size === 0) {
+    alert(T('请先选择条目','Select items first'));
+    return;
+  }
+  batchDest = { cat: Object.keys(CATEGORIES)[0], sub: null, stage: 'ideas' };
+  const firstCat = Object.keys(CATEGORIES)[0];
+  batchDest.cat = firstCat;
+  batchDest.sub = CATEGORIES[firstCat].subs ? Object.keys(CATEGORIES[firstCat].subs)[0] : null;
+
+  renderBatchMoveModal();
+}
+
+function renderBatchMoveModal() {
+  const count = state.selectedItems.size;
+  let catBtns = Object.keys(CATEGORIES).map(k =>
+    `<button class="dest-opt${batchDest.cat === k ? ' selected-dest' : ''}" onclick="setBatchCat('${k}')">${CATEGORIES[k].icon} ${catLabel(k)}</button>`
+  ).join('');
+
+  const catInfo = CATEGORIES[batchDest.cat];
+  let subSection = '';
+  if (catInfo.subs) {
+    const subBtns = Object.keys(catInfo.subs).map(k =>
+      `<button class="dest-opt${batchDest.sub === k ? ' selected-dest' : ''}" onclick="setBatchSub('${k}')">${subLabel(batchDest.cat, k)}</button>`
+    ).join('');
+    subSection = `<div><div class="dest-cat-label">${T('子类型','Subtype')}</div><div class="dest-options">${subBtns}</div></div>`;
+  }
+
+  const stageBtns = STAGES.map(k =>
+    `<button class="dest-stage-opt${batchDest.stage === k ? ' sel-'+k : ''}" onclick="setBatchStage('${k}')">${stageName(k)}</button>`
+  ).join('');
+
+  const modalHtml = `
+  <div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width:460px">
+      <div class="modal-header">
+        <div class="modal-title">${T(`移动 ${count} 条条目到...`,`Move ${count} item(s) to...`)}</div>
+        <button class="modal-close" onclick="closeAllModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="dest-grid">
+          <div>
+            <div class="dest-cat-label">${T('分类','Category')}</div>
+            <div class="dest-options">${catBtns}</div>
+          </div>
+          ${subSection}
+          <div>
+            <div class="dest-cat-label">${T('阶段','Stage')}</div>
+            <div class="dest-stage-row">${stageBtns}</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAllModals()">${T('取消','Cancel')}</button>
+        <button class="btn btn-primary" onclick="executeBatchMove()">${T('确认移动','Move')}</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('modal-root').innerHTML = modalHtml;
+}
+
+function setBatchCat(cat) {
+  batchDest.cat = cat;
+  batchDest.sub = CATEGORIES[cat].subs ? Object.keys(CATEGORIES[cat].subs)[0] : null;
+  renderBatchMoveModal();
+}
+function setBatchSub(sub) { batchDest.sub = sub; renderBatchMoveModal(); }
+function setBatchStage(stage) { batchDest.stage = stage; renderBatchMoveModal(); }
+
+function executeBatchMove() {
+  const { cat, sub, stage } = batchDest;
+  const destItems = sub ? state.data[cat][sub][stage] : state.data[cat][stage];
+  const now = new Date().toISOString();
+
+  for (const [key, fromStage] of state.selectedItems) {
+    const id = key.split('|')[0];
+    // find and remove from source
+    const srcCat = state.category;
+    const srcSub = state.subtype;
+    const srcArr = srcSub ? state.data[srcCat][srcSub][fromStage] : state.data[srcCat][fromStage];
+    const idx = srcArr.findIndex(i => i.id === id);
+    if (idx === -1) continue;
+    const [item] = srcArr.splice(idx, 1);
+    item.updated_at = now;
+    destItems.unshift(item);
+  }
+
+  state.selectedItems.clear();
+  closeAllModals();
+  cancelSelectMode();
+  scheduleSave();
+}
+
+
+// ============================================================
+// FILE ATTACHMENTS
+// ============================================================
+let modalFiles = [];  // [{path, name, size}] for current modal
+
+function fileSizeStr(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function fileIcon(name) {
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  return ext === 'pdf' ? '📄' : ext === 'docx' || ext === 'doc' ? '📝' : '📎';
+}
+
+async function uploadFileAttachment(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  if (!hasSettings()) { alert(T('请先配置 GitHub 设置','Configure GitHub settings first')); return; }
+
+  const progressEl = document.getElementById('file-upload-progress');
+  for (const file of files) {
+    // Validate type
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    if (!['pdf','docx','doc'].includes(ext)) {
+      if (progressEl) { progressEl.className = 'file-upload-error'; progressEl.textContent = T('仅支持 PDF / DOCX 文件','Only PDF / DOCX files are supported'); }
+      continue;
+    }
+    if (progressEl) { progressEl.className = 'file-upload-progress'; progressEl.textContent = T('上传 ','Uploading ') + file.name + '...'; }
+    try {
+      const path = await uploadFileToPRepo(file, 'files');
+      modalFiles.push({ path, name: file.name, size: file.size });
+      renderModalFileList();
+      if (progressEl) { progressEl.className = 'file-upload-progress'; progressEl.textContent = '✓ ' + file.name + T(' 上传成功',' uploaded'); }
+    } catch(e) {
+      if (progressEl) { progressEl.className = 'file-upload-error'; progressEl.textContent = '✗ ' + file.name + ': ' + e.message; }
+    }
+  }
+  input.value = ''; // reset input
+}
+
+async function uploadFileToPRepo(file, folder) {
+  const { token, owner, repo } = state.settings;
+  const safeFilename = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/^_+|_+$/g, '') || 'file';
+  const path = folder + '/' + Date.now() + '_' + safeFilename;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result.split(',')[1];
+      try {
+        const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + path, {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ message: 'Upload file: ' + file.name, content: base64 })
+        });
+        if (!r.ok) { const e = await r.json(); reject(new Error(e.message || 'HTTP ' + r.status)); return; }
+        resolve(path);
+      } catch(e) { reject(e); }
+    };
+    reader.onerror = () => reject(new Error(T('读取文件失败','Failed to read file')));
+    reader.readAsDataURL(file);
+  });
+}
+
+function removeModalFile(idx) {
+  modalFiles.splice(idx, 1);
+  renderModalFileList();
+}
+
+function renderModalFileList() {
+  const el = document.getElementById('modal-file-list');
+  if (!el) return;
+  if (!modalFiles.length) {
+    el.innerHTML = `<span style="color:var(--text3);font-size:0.82rem;font-style:italic">${T('暂无附件','No attachments')}</span>`;
+    return;
+  }
+  el.innerHTML = '<div class="file-list">' + modalFiles.map((f, i) =>
+    `<div class="file-item">
+      <span class="file-icon">${fileIcon(f.name)}</span>
+      <span class="file-name" title="${escHtml(f.path)}">${escHtml(f.name)}</span>
+      <span class="file-size">${fileSizeStr(f.size)}</span>
+      <button class="file-remove" onclick="removeModalFile(${i})" title="${T('移除','Remove')}">×</button>
+    </div>`
+  ).join('') + '</div>';
+}
+
+async function downloadFile(path, name, btnEl) {
+  if (!hasSettings()) { alert(T('请先配置 GitHub 设置','Configure GitHub settings first')); return; }
+  if (btnEl) { btnEl.classList.add('loading'); btnEl.textContent = T('下载中...','Downloading...'); }
+  const { token, owner, repo } = state.settings;
+  try {
+    const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + path, {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const json = await r.json();
+    let blob;
+    if (json.content) {
+      const b64 = json.content.replace(/[\n\r\s]/g, '');
+      const binary = atob(b64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      blob = new Blob([bytes]);
+    } else if (json.sha) {
+      // >1MB: use Git Blobs API
+      const blobR = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/git/blobs/' + json.sha, {
+        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (!blobR.ok) throw new Error(T('文件过大或不可访问','File too large or inaccessible'));
+      const blobJson = await blobR.json();
+      const b64 = blobJson.content.replace(/[\n\r\s]/g, '');
+      const binary = atob(b64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      blob = new Blob([bytes]);
+    } else { throw new Error(T('文件不可访问','File inaccessible')); }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name || path.split('/').pop();
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+  } catch(e) {
+    alert(T('下载失败: ','Download failed: ') + e.message);
+  } finally {
+    if (btnEl) { btnEl.classList.remove('loading'); btnEl.textContent = T('⬇ 下载','⬇ Download'); }
+  }
+}
+
+// ============================================================
+// IMAGE FUNCTIONS
+// ============================================================
+const imageCache = new Map(); // path -> dataURL
+let modalImagePath = null;    // currently selected image in open modal
+
+function imgMime(filename) {
+  const ext = (filename.split('.').pop() || '').toLowerCase();
+  return { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp' }[ext] || 'image/jpeg';
+}
+
+// fetchImageResult returns { dataUrl, error } so callers know WHY it failed
+async function fetchImageResult(path, _attempt = 0) {
+  if (!hasSettings()) return { dataUrl: null, error: T('未配置 GitHub','GitHub not configured') };
+  const { token, owner, repo } = state.settings;
+  // Try three path variants in order:
+  //  1. raw path (works for ASCII filenames uploaded with new code)
+  //  2. each segment percent-encoded (handles non-ASCII in filenames)
+  //  3. whole path encoded with %2F (legacy: uploaded with old encodeURIComponent code)
+  const variants = [
+    path,
+    path.split('/').map(s => encodeURIComponent(s)).join('/'),
+    encodeURIComponent(path)
+  ];
+  // Deduplicate variants that are identical
+  const tried = new Set();
+  for (const variant of variants) {
+    if (tried.has(variant)) continue;
+    tried.add(variant);
+    try {
+      const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + variant, {
+        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (r.status >= 500 || r.status === 429) {
+        if (_attempt < 2) {
+          await new Promise(res => setTimeout(res, 800 * (_attempt + 1)));
+          return fetchImageResult(path, _attempt + 1);
+        }
+        return { dataUrl: null, error: T('GitHub 服务器暂时不可用 (','GitHub server temporarily unavailable (') + r.status + ')' };
+      }
+      if (r.status === 404) continue; // try next variant
+      if (r.status === 403) return { dataUrl: null, error: T('Token 权限不足 (403)','Token lacks permission (403)') };
+      if (!r.ok) return { dataUrl: null, error: T('API 错误 (','API error (') + r.status + ')' };
+      const json = await r.json();
+      let dataUrl;
+      if (json.content) {
+        const b64 = json.content.replace(/[\n\r\s]/g, '');
+        dataUrl = 'data:' + imgMime(path) + ';base64,' + b64;
+      } else if (json.sha) {
+        // >1MB: GitHub Contents API returns content:null for large files.
+        // Use Git Blobs API with the file's SHA — works for private repos, up to 100MB.
+        const blobR = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/git/blobs/' + json.sha, {
+          headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (!blobR.ok) return { dataUrl: null, error: T('Blobs API 失败 (','Blobs API failed (') + blobR.status + T(')，文件可能超过 100MB','), file may exceed 100MB') };
+        const blobJson = await blobR.json();
+        const b64 = blobJson.content.replace(/[\n\r\s]/g, '');
+        dataUrl = 'data:' + imgMime(path) + ';base64,' + b64;
+      } else {
+        return { dataUrl: null, error: T('文件内容不可访问（无 SHA）','File content inaccessible (no SHA)') };
+      }
+      return { dataUrl, error: null };
+    } catch(e) {
+      console.error('fetchImage variant error:', variant, e);
+    }
+  }
+  return { dataUrl: null, error: T('文件不存在（路径: ','File not found (path: ') + path + '）' };
+}
+
+async function blobToDataUrl(blob) {
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload = () => res(reader.result);
+    reader.onerror = rej;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function fetchImage(path) {
+  if (imageCache.has(path)) return imageCache.get(path);
+  const { dataUrl, error } = await fetchImageResult(path);
+  if (dataUrl) imageCache.set(path, dataUrl);
+  if (error) console.warn('fetchImage failed for', path, ':', error);
+  return dataUrl;
+}
+
+async function uploadImage(file) {
+  const { token, owner, repo } = state.settings;
+  // ASCII-only: strip all non-ASCII so the path never needs percent-encoding
+  const safeFilename = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/^_+|_+$/g, '') || 'image';
+  const path = 'images/' + Date.now() + '_' + safeFilename;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result.split(',')[1];
+      try {
+        const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/' + path, {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ message: 'Upload image: ' + file.name, content: base64 })
+        });
+        if (!r.ok) { const e = await r.json(); reject(new Error(e.message || r.status)); return; }
+        imageCache.set(path, reader.result);
+        resolve(path);
+      } catch(e) { reject(e); }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function listRepoImages() {
+  if (!hasSettings()) return [];
+  const { token, owner, repo } = state.settings;
+  try {
+    const r = await fetch(GITHUB_API + '/repos/' + owner + '/' + repo + '/contents/images', {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!r.ok) return [];
+    const files = await r.json();
+    return Array.isArray(files)
+      ? files.filter(f => f.type === 'file' && /\.(jpe?g|png|gif|webp)$/i.test(f.name))
+      : [];
+  } catch(e) { return []; }
+}
+
+async function loadCardImages() {
+  const placeholders = document.querySelectorAll('[data-img-path]');
+  for (const el of placeholders) {
+    const path = el.dataset.imgPath;
+    const dataUrl = await fetchImage(path);
+    if (dataUrl) {
+      el.src = dataUrl;
+      el.classList.add('loaded');
+    } else {
+      // show a subtle broken state so user knows image path is wrong
+      el.style.height = '32px';
+      el.alt = T('⚠ 图片加载失败','⚠ Image failed to load');
+      el.style.opacity = '0.4';
+    }
+  }
+}
+
+function setModalImage(path, dataUrl) {
+  modalImagePath = path;
+  const preview = document.getElementById('modal-img-preview');
+  if (!preview) return;
+  if (path && dataUrl) {
+    preview.innerHTML = '<div class="img-preview-wrap"><img class="img-preview" src="' + dataUrl + '" alt="preview"><div><div class="img-preview-path">' + escHtml(path) + '</div><button class="btn-clear-img" onclick="clearModalImage()">&#x2715; ' + T('\u79fb\u9664\u56fe\u7247','Remove image') + '</button></div></div>';
+  } else {
+    preview.innerHTML = '<span style="color:var(--text3);font-size:0.85rem">' + T('\u672a\u9009\u62e9\u56fe\u7247','No image selected') + '</span>';
+  }
+}
+
+function clearModalImage() {
+  modalImagePath = null;
+  const preview = document.getElementById('modal-img-preview');
+  if (preview) preview.innerHTML = '<span style="color:var(--text3);font-size:0.85rem">' + T('\u672a\u9009\u62e9\u56fe\u7247','No image selected') + '</span>';
+}
+
+function switchImgTab(tab) {
+  document.querySelectorAll('.img-picker-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.img-tab-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('img-tab-btn-' + tab).classList.add('active');
+  document.getElementById('img-panel-' + tab).style.display = 'block';
+  if (tab === 'repo') loadRepoImagePanel();
+}
+
+async function loadRepoImagePanel() {
+  const panel = document.getElementById('img-panel-repo');
+  if (!panel) return;
+  panel.innerHTML = '<div class="img-loading">' + T('\u52a0\u8f7d\u4ed3\u5e93\u56fe\u7247\u4e2d...','Loading repo images...') + '</div>';
+  const files = await listRepoImages();
+  if (!files.length) {
+    panel.innerHTML = '<div class="img-loading">' + T('images/ \u76ee\u5f55\u4e3a\u7a7a\u6216\u4e0d\u5b58\u5728','images/ folder is empty or missing') + '</div>';
+    return;
+  }
+  let grid = '<div class="repo-img-grid" id="repo-grid">';
+  for (const f of files) {
+    const thumbId = 'rthumb-' + f.sha.slice(0,8);
+    grid += '<div class="repo-img-item" onclick="selectRepoImage(\'' + escHtml(f.path) + '\',this)">' +
+            '<img class="repo-img-thumb" data-img-path="' + escHtml(f.path) + '" src="" alt="' + escHtml(f.name) + '" id="' + thumbId + '">' +
+            '<span class="repo-img-name">' + escHtml(f.name) + '</span></div>';
+  }
+  grid += '</div>';
+  panel.innerHTML = grid;
+  for (const f of files) {
+    fetchImage(f.path).then(dataUrl => {
+      if (!dataUrl) return;
+      const el = document.getElementById('rthumb-' + f.sha.slice(0,8));
+      if (el) { el.src = dataUrl; el.classList.add('loaded'); }
+    });
+  }
+}
+
+async function selectRepoImage(path, itemEl) {
+  document.querySelectorAll('.repo-img-thumb').forEach(t => t.classList.remove('selected'));
+  if (itemEl) { const th = itemEl.querySelector('.repo-img-thumb'); if (th) th.classList.add('selected'); }
+  const dataUrl = await fetchImage(path);
+  setModalImage(path, dataUrl);
+}
+
+async function handleUploadFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const progressEl = document.getElementById('upload-progress');
+  if (progressEl) progressEl.textContent = T('\u4e0a\u4f20\u4e2d...','Uploading...');
+  try {
+    const path = await uploadImage(file);
+    const dataUrl = imageCache.get(path);
+    setModalImage(path, dataUrl);
+    if (progressEl) progressEl.textContent = T('\u2713 \u4e0a\u4f20\u6210\u529f','\u2713 Uploaded');
+    switchImgTab('current');
+  } catch(e) {
+    if (progressEl) progressEl.textContent = T('\u2717 \u4e0a\u4f20\u5931\u8d25: ','\u2717 Upload failed: ') + e.message;
+  }
+}
+
+// ============================================================
+// 写作工作区 WRITING WORKSPACE
+// 数据独立于 writing.json，存私有数据仓库的 writing-workspace.json。
+// 分开的理由：文档正文 + 逐条版本历史体量远大于想法数据，
+// 且完全不碰 writing.json 的 mergeData（那里加顶层键有剥键陷阱）。
+// ⚠️ 公开壳零个人数据：本文件不得内嵌任何项目内容，空态只给提示。
+// ============================================================
+const WS_FILE = 'writing-workspace.json';
+const WS_STATUS = { todo:'未写', draft:'草稿', done:'已定稿' };
+const WS_STATUS_EN = { todo:'To write', draft:'Draft', done:'Final' };
+const WS_MAX_VERSIONS = 20;
+// 条目两类：internal＝内部素材（骨架/设定，不对外）；deliverable＝交付内容（对外可见）
+// 🔒 规则：**导出一律只出交付内容**，交付清单才是要核对的工作量。
+const WS_KIND = { internal:'内部', deliverable:'交付' };
+const WS_KIND_EN = { internal:'Internal', deliverable:'Deliverable' };
+const wsIsDeliv = t => (t.kind || 'deliverable') === 'deliverable';
+const wsDelivTasks = p => (p.tasks || []).filter(wsIsDeliv);
+
+function wsDefault() {
+  return { _meta:{ version:'1.0', last_updated:new Date().toISOString() }, projects: [] };
+}
+
+function wsProj() {
+  const ps = (state.ws && state.ws.projects) || [];
+  return ps.find(p => p.id === state.wsProj) || ps[0] || null;
+}
+
+// ---------- 分区切换 ----------
+function setZone(z) {
+  state.zone = z;
+  try { localStorage.setItem('writing_zone', z); } catch(e) {}
+  document.body.classList.toggle('zone-writing', z === 'writing');
+  document.querySelectorAll('.zone-tab').forEach(t => t.classList.toggle('active', t.dataset.zone === z));
+  const hb = document.getElementById('ws-headbtns'), bb = document.getElementById('brain-headbtns');
+  if (hb) hb.style.display = z === 'writing' ? '' : 'none';
+  if (bb) bb.style.display = z === 'writing' ? 'none' : '';
+  if (z === 'writing') {
+    if (!state.ws) wsLoad(); else wsRender();
+  }
+}
+
+// ---------- 数据读写 ----------
+async function wsLoad() {
+  if (!hasSettings()) { state.ws = wsDefault(); wsRender(); return false; }
+  setSyncStatus('syncing', T('读取工作区...','Loading workspace...'));
+  try {
+    const { owner, repo } = state.settings;
+    // 带时间戳绕开 Contents API 缓存——刚在别处写完就来读会拿到旧版本（菜谱那边踩过）
+    const r = await githubGet(`/repos/${owner}/${repo}/contents/${WS_FILE}?_=${Date.now()}`);
+    if (r.status === 404) { state.ws = wsDefault(); state.wsSha = null; setSyncStatus('idle', T('工作区为空','Workspace empty')); wsRender(); return true; }
+    if (!r.ok) { state.ws = wsDefault(); setSyncStatus('error', T('工作区读取失败','Workspace load failed')); wsRender(); return false; }
+    const json = await r.json();
+    // 文件超过 1MB 时 Contents API 不返回 content（encoding:"none"）——
+    // 工作区体量一过线就整个读不出来（已真实触发过）。这种时候改走 blob API（上限 100MB）。
+    let rawB64 = json.content;
+    if (!rawB64) {
+      const br = await githubGet(`/repos/${owner}/${repo}/git/blobs/${json.sha}`);
+      if (!br.ok) { state.ws = wsDefault(); setSyncStatus('error', T('工作区读取失败','Workspace load failed')); wsRender(); return false; }
+      rawB64 = (await br.json()).content || '';
+    }
+    const parsed = JSON.parse(b64Decode(rawB64));
+    state.ws = { _meta: parsed._meta || wsDefault()._meta, projects: Array.isArray(parsed.projects) ? parsed.projects : [] };
+    state.wsSha = json.sha;
+    if (!state.wsProj && state.ws.projects[0]) state.wsProj = state.ws.projects[0].id;
+    setSyncStatus('success', T('已同步','Synced'));
+    setTimeout(() => setSyncStatus('idle', T('已同步','Synced')), 1800);
+    wsRender();
+    return true;
+  } catch(e) {
+    state.ws = wsDefault(); setSyncStatus('error', T('网络错误','Network error')); console.error(e); wsRender(); return false;
+  }
+}
+
+async function wsSave(silent, _retrying = false) {
+  if (!hasSettings()) { setSyncStatus('error', T('未配置令牌','No token')); return false; }
+  if (state.wsSaving && !_retrying) {
+    if (state.wsTimer) clearTimeout(state.wsTimer);
+    state.wsTimer = setTimeout(() => wsSave(false), 1500);
+    return false;
+  }
+  state.wsSaving = true;
+  if (!silent) setSyncStatus('syncing', T('保存中...','Saving...'));
+  try {
+    state.ws._meta.last_updated = new Date().toISOString();
+    const content = b64Encode(JSON.stringify(state.ws, null, 1));
+    const { owner, repo } = state.settings;
+    const body = { message: `Update ${WS_FILE} - ${new Date().toLocaleString('zh-CN')}`, content,
+                   ...(state.wsSha ? { sha: state.wsSha } : {}) };
+    const r = await githubPut(`/repos/${owner}/${repo}/contents/${WS_FILE}`, body);
+    if ((r.status === 409 || r.status === 422) && !_retrying) {
+      setSyncStatus('syncing', T('SHA冲突，重取...','SHA conflict, retrying...'));
+      const rf = await githubGet(`/repos/${owner}/${repo}/contents/${WS_FILE}`);
+      state.wsSha = rf.ok ? (await rf.json()).sha : null;
+      state.wsSaving = false;
+      return wsSave(silent, true);
+    }
+    if (!r.ok) {
+      let m = r.status; try { m = (await r.json()).message || m; } catch(e) {}
+      setSyncStatus('error', T('保存失败: ','Save failed: ') + m);
+      state.wsSaving = false; return false;
+    }
+    state.wsSha = (await r.json()).content.sha;
+    state.wsSaving = false;
+    if (!silent) { setSyncStatus('success', T('已保存','Saved')); setTimeout(() => setSyncStatus('idle', T('已同步','Synced')), 1800); }
+    wsDelivSync();          // 已放入交付的项跟着刷新——链接不变，内容始终是最新的
+    return true;
+  } catch(e) {
+    setSyncStatus('error', T('保存失败','Save failed')); state.wsSaving = false; console.error(e); return false;
+  }
+}
+
+function wsScheduleSave() {
+  setSyncStatus('unsaved', T('未保存','Unsaved'));
+  if (state.wsTimer) clearTimeout(state.wsTimer);
+  if (hasSettings()) state.wsTimer = setTimeout(() => wsSave(false), 2000);
+}
+
+// ---------- 渲染主入口 ----------
+function wsRender() {
+  const root = document.getElementById('ws-root');
+  if (!root) return;
+  const ws = state.ws;
+  if (!ws) { root.innerHTML = `<div class="ws-empty"><div class="big">✍️</div><p>${T('加载中…','Loading…')}</p></div>`; return; }
+  if (!ws.projects.length) {
+    root.innerHTML = `<div class="ws-empty"><div class="big">✍️</div>
+      <p>${T('还没有写作项目。','No writing project yet.')}<br>
+      ${T('写作项目用来放长期的写作工程：设定文档 + 逐条写作清单 + 版本与交付导出。','A writing project holds long-form work: reference docs, a per-item checklist, versions and delivery exports.')}</p>
+      <div style="margin-top:18px"><button class="ws-btn primary" onclick="wsNewProject()">＋ ${T('新建写作项目','New project')}</button></div>
+      ${hasSettings() ? '' : `<p class="ws-hint">${T('提示：先在「⚙ 设置」里配置令牌，数据才会同步。','Tip: configure the token in Settings to enable sync.')}</p>`}</div>`;
+    return;
+  }
+  const p = wsProj();
+  const tabs = [['tasks','📋 '+T('写作清单','Checklist')],['docs','📄 '+T('设定文档','Docs')],['export','⬇ '+T('导出','Export')]];
+  const st = wsStats(p);
+  const sk = wsStats(p, (p.tasks||[]).filter(t => !wsIsDeliv(t)));
+  root.innerHTML = `
+    <div class="ws-projbar">
+      <select class="ws-proj-sel" onchange="wsSetProject(this.value)">
+        ${ws.projects.map(x => `<option value="${escHtml(x.id)}" ${x.id===p.id?'selected':''}>${escHtml(x.name)}</option>`).join('')}
+      </select>
+      <div class="ws-proj-desc">${escHtml(p.desc||'')}</div>
+      <div class="ws-progwrap">
+        <div class="ws-progbar"><i style="width:${st.pct}%"></i></div>
+        <div class="ws-progtxt">${T('交付','Deliverable')} ${st.done}/${st.total} · ${st.pct}%${
+          sk.total ? ` <span style="color:var(--w-tx3)">｜${T('骨架','Skeleton')} ${sk.done}/${sk.total}</span>` : ''}</div>
+      </div>
+      <button class="ws-btn ghost" onclick="wsNewProject()" title="${T('新建写作项目','New project')}">＋</button>
+    </div>
+    <div class="ws-tabs">${tabs.map(([k,l]) => `<button class="ws-tab ${state.wsTab===k?'active':''}" onclick="wsSetTab('${k}')">${l}</button>`).join('')}</div>
+    <div id="ws-view"></div>`;
+  const v = document.getElementById('ws-view');
+  if (state.wsTab === 'docs') wsRenderDocs(v, p);
+  else if (state.wsTab === 'export') wsRenderExport(v, p);
+  else wsRenderTasks(v, p);
+}
+
+function wsStats(p, list) {
+  const ts = list || wsDelivTasks(p);   // 默认只统计交付＝真正的工作量
+  const done = ts.filter(t => t.status === 'done').length;
+  const draft = ts.filter(t => t.status === 'draft').length;
+  return { total: ts.length, done, draft, todo: ts.length - done - draft,
+           pct: ts.length ? Math.round(done / ts.length * 100) : 0 };
+}
+function wsSetProject(id) { state.wsProj = id; state.wsGroup = null; state.wsDoc = null; wsRender(); }
+function wsSetTab(t) { state.wsTab = t; wsRender(); if ((t === 'export' || t === 'docs') && !state.deliv) wsDelivLoad(); }
+
+// ---------- 写作清单 ----------
+function wsTaskText(t) { return (t.fields || []).map(f => f.value || '').join(' ').trim(); }
+function wsTaskOld(t)  { return (t.fields || []).map(f => f.old || '').join(' ').trim(); }
+function wsChanged(t) {
+  if (!t.exported) return !!wsTaskText(t);
+  return (t.fields || []).some(f => (t.exported[f.key] || '') !== (f.value || ''));
+}
+
+function wsRenderTasks(el, p) {
+  const tasks = p.tasks || [];
+  if (!tasks.length) {
+    el.innerHTML = `<div class="ws-empty"><div class="big">📋</div><p>${T('这个项目还没有写作条目。','No checklist items yet.')}</p></div>`;
+    return;
+  }
+  const groups = [];
+  for (const t of tasks) if (!groups.includes(t.group)) groups.push(t.group);
+  if (!state.wsGroup || !groups.includes(state.wsGroup)) state.wsGroup = groups[0];
+
+  const side = groups.map(g => {
+    const gt = tasks.filter(t => t.group === g);
+    const d = gt.filter(t => t.status === 'done').length;
+    const isInt = gt.length && !wsIsDeliv(gt[0]);
+    return `<button class="ws-slink ${state.wsGroup===g?'active':''}" onclick="wsSetGroup(${JSON.stringify(g).replace(/"/g,'&quot;')})">
+      <span>${escHtml(g)}${isInt ? ` <span style="font-size:.72rem;color:var(--w-tx3)">${T('内部','int')}</span>` : ''}</span><span class="n">${d}/${gt.length}</span></button>`;
+  }).join('');
+
+  const q = (state.wsQuery || '').trim().toLowerCase();
+  let list = tasks.filter(t => t.group === state.wsGroup);
+  if (state.wsFilter && state.wsFilter !== 'all') list = list.filter(t => t.status === state.wsFilter);
+  if (state.wsKind && state.wsKind !== 'kall') list = list.filter(t => (t.kind||'deliverable') === state.wsKind);
+  if (q) list = list.filter(t => (t.title + ' ' + t.sub + ' ' + wsTaskText(t) + ' ' + wsTaskOld(t)).toLowerCase().includes(q));
+
+  const chips = [['all',T('全部','All')],['todo',T('未写','To write')],['draft',T('草稿','Draft')],['done',T('已定稿','Final')]]
+    .map(([k,l]) => `<button class="ws-chip ${(state.wsFilter||'all')===k?'active':''}" onclick="wsSetFilter('${k}')">${l}</button>`).join('')
+    + `<span style="width:10px"></span>` +
+    [['kall',T('不限','Any')],['deliverable','📦 '+T('交付','Deliv')],['internal','🔒 '+T('内部','Int')]]
+    .map(([k,l]) => `<button class="ws-chip ${(state.wsKind||'kall')===k?'active':''}" onclick="wsSetKind('${k}')">${l}</button>`).join('');
+
+  let body = '';
+  let lastSub = null;
+  for (const t of list) {
+    if (t.sub !== lastSub) { body += `<div class="ws-subhead">${escHtml(t.sub || '')}</div>`; lastSub = t.sub; }
+    body += wsTaskCard(t);
+  }
+  if (!list.length) body = `<div class="ws-empty"><p>${T('没有符合条件的条目。','Nothing matches.')}</p></div>`;
+
+  el.innerHTML = `<div class="ws-body">
+    <div class="ws-side">${side}</div>
+    <div class="ws-main">
+      <div class="ws-filter">${chips}
+        <input class="ws-search" placeholder="${T('搜索标题或正文…','Search…')}" value="${escHtml(state.wsQuery||'')}"
+               oninput="wsSetQuery(this.value)">
+      </div>
+      ${body}
+    </div></div>`;
+}
+
+function wsTaskCard(t) {
+  const open = state.wsOpenTask === t.id;
+  const txt = wsTaskText(t);
+  const prev = txt || wsTaskOld(t);
+  const chg = wsChanged(t) && t.exportedAt;
+  return `<div class="ws-task ${open?'open':''}" id="wst-${t.id}">
+    <div class="ws-thead" onclick="wsToggleTask('${t.id}')">
+      <div class="ws-ttitle">${escHtml(t.title)}
+        <div class="ws-tprev">${prev ? escHtml(prev.slice(0,70)) + (prev.length>70?'…':'') : T('（空）','(empty)')}</div>
+      </div>
+      ${wsIsDeliv(t) ? '' : `<span class="ws-badge int">${lang==='en'?WS_KIND_EN.internal:WS_KIND.internal}</span>`}
+      ${chg && wsIsDeliv(t) ? `<span class="ws-badge chg">${T('待交付','Pending')}</span>` : ''}
+      <span class="ws-badge ${t.status}">${lang==='en'?WS_STATUS_EN[t.status]:WS_STATUS[t.status]}</span>
+    </div>
+    ${open ? wsTaskBody(t) : ''}
+  </div>`;
+}
+
+function wsTaskBody(t) {
+  const ctx = (t.context||[]).length ? `<details class="ws-ctx" open><summary>${T('写作上下文（只读）','Context (read-only)')}</summary>
+      <table class="ws-ctxtable">${t.context.map(c => `<tr><td>${escHtml(c.k)}</td><td>${escHtml(c.v)}</td></tr>`).join('')}</table>
+    </details>` : '';
+  const fields = (t.fields||[]).map((f,i) => `
+    <div class="ws-field">
+      ${f.old ? `<div class="ws-old"><span class="lbl">${T('旧占位文案（ChatGPT 生成，只作语感参考，不是范本）','Old placeholder — reference only, not a template')}</span>${escHtml(f.old)}</div>` : ''}
+      <div class="ws-flabel"><span>${escHtml(f.label)}</span><span class="cnt" id="cnt-${t.id}-${i}">${(f.value||'').length} ${T('字','ch')}</span></div>
+      ${f.key==='title'
+        ? `<input class="ws-input" id="fi-${t.id}-${i}" value="${escHtml(f.value||'')}" oninput="wsFieldInput('${t.id}',${i},this.value)">`
+        : `<textarea class="ws-textarea" id="fi-${t.id}-${i}" oninput="wsFieldInput('${t.id}',${i},this.value)" placeholder="${T('两三句。别超过三句。','Two or three sentences.')}">${escHtml(f.value||'')}</textarea>`}
+    </div>`).join('');
+  const vers = (t.versions||[]).length ? `<details class="ws-vers"><summary>${T('版本历史','Versions')}（${t.versions.length}）</summary>
+      ${t.versions.slice().reverse().map(v => `<div class="ws-vrow">
+        <span class="vno">v${v.v}</span>
+        <span class="vtx">${escHtml(Object.values(v.fields||{}).filter(Boolean).join(' ／ ')||'（空）')}</span>
+        <span class="vat">${escHtml((v.at||'').replace('T',' ').slice(0,16))}</span>
+        <button class="ws-btn ghost" style="padding:2px 8px" onclick="wsRestore('${t.id}',${v.v})">${T('回填','Restore')}</button>
+      </div>`).join('')}</details>` : '';
+  return `<div class="ws-tbody">
+    ${ctx}${fields}
+    ${t.note !== undefined ? `<div class="ws-field"><div class="ws-flabel"><span>${T('我的备注（不导出）','My note (not exported)')}</span></div>
+      <input class="ws-input" value="${escHtml(t.note||'')}" oninput="wsNoteInput('${t.id}',this.value)"></div>` : ''}
+    <div class="ws-actions">
+      ${['todo','draft','done'].map(s => `<button class="ws-btn ${t.status===s?'primary':''}" onclick="wsSetStatus('${t.id}','${s}')">${lang==='en'?WS_STATUS_EN[s]:WS_STATUS[s]}</button>`).join('')}
+      <span class="ws-spacer"></span>
+      <button class="ws-btn" onclick="wsToggleKind('${t.id}')" title="${T('内部＝我自己写东西用的，不导出；交付＝玩家能看到的，要导出','Internal = never exported; Deliverable = player-facing, exported')}">
+        ${wsIsDeliv(t) ? '📦 '+T('交付','Deliverable') : '🔒 '+T('内部','Internal')}
+      </button>
+      <button class="ws-btn primary" onclick="wsCommit('${t.id}')">${T('存为新版本','Save version')}</button>
+    </div>
+    ${vers}
+  </div>`;
+}
+
+function wsFindTask(id) { const p = wsProj(); return p && (p.tasks||[]).find(t => t.id === id); }
+function wsToggleTask(id) { state.wsOpenTask = state.wsOpenTask === id ? null : id; wsRender(); }
+function wsSetGroup(g) { state.wsGroup = g; state.wsOpenTask = null; wsRender(); }
+function wsSetFilter(f) { state.wsFilter = f; wsRender(); }
+function wsSetKind(k) { state.wsKind = k; wsRender(); }
+let _wsQT = null;
+function wsSetQuery(v) { state.wsQuery = v; clearTimeout(_wsQT); _wsQT = setTimeout(() => wsRender(), 220); }
+
+function wsFieldInput(id, i, v) {
+  const t = wsFindTask(id); if (!t) return;
+  t.fields[i].value = v;
+  const c = document.getElementById(`cnt-${id}-${i}`);
+  if (c) c.textContent = v.length + ' ' + T('字','ch');
+  if (t.status === 'todo' && v.trim()) t.status = 'draft';
+  wsScheduleSave();
+}
+function wsNoteInput(id, v) { const t = wsFindTask(id); if (!t) return; t.note = v; wsScheduleSave(); }
+function wsToggleKind(id) {
+  const t = wsFindTask(id); if (!t) return;
+  t.kind = wsIsDeliv(t) ? 'internal' : 'deliverable';
+  wsScheduleSave(); wsRender();
+}
+function wsSetStatus(id, s) { const t = wsFindTask(id); if (!t) return; t.status = s; wsScheduleSave(); wsRender(); }
+
+function wsCommit(id) {
+  const t = wsFindTask(id); if (!t) return;
+  const cur = {}; (t.fields||[]).forEach(f => cur[f.key] = f.value || '');
+  const last = (t.versions||[])[t.versions.length - 1];
+  if (last && JSON.stringify(last.fields) === JSON.stringify(cur)) {
+    setSyncStatus('idle', T('与上一版相同，未新增','Same as last version')); return;
+  }
+  t.versions = t.versions || [];
+  t.versions.push({ v: (last ? last.v : 0) + 1, fields: cur, at: new Date().toISOString() });
+  if (t.versions.length > WS_MAX_VERSIONS) t.versions = t.versions.slice(-WS_MAX_VERSIONS);
+  wsScheduleSave(); wsRender();
+  setSyncStatus('success', T('已存为 v','Saved as v') + t.versions[t.versions.length-1].v);
+}
+function wsRestore(id, v) {
+  const t = wsFindTask(id); if (!t) return;
+  const ver = (t.versions||[]).find(x => x.v === v); if (!ver) return;
+  (t.fields||[]).forEach(f => { if (ver.fields[f.key] !== undefined) f.value = ver.fields[f.key]; });
+  wsScheduleSave(); wsRender();
+}
+
+function wsNewProject() {
+  const name = prompt(T('项目名称','Project name')); if (!name) return;
+  const desc = prompt(T('一句话描述（可留空）','One-line description (optional)')) || '';
+  state.ws = state.ws || wsDefault();
+  const id = 'p_' + Date.now().toString(36);
+  state.ws.projects.push({ id, name, nameEn:name, desc, createdAt:new Date().toISOString(),
+                           docs:[], tasks:[], lastExportAt:null, deletedSinceExport:[] });
+  state.wsProj = id; state.wsTab = 'tasks'; wsScheduleSave(); wsRender();
+}
+
+// ---------- 设定文档 ----------
+function wsRenderDocs(el, p) {
+  const docs = p.docs || [];
+  if (!docs.length) {
+    el.innerHTML = `<div class="ws-empty"><div class="big">📄</div><p>${T('这个项目还没有文档。','No docs yet.')}</p>
+      <div style="margin-top:16px"><button class="ws-btn primary" onclick="wsNewDoc()">＋ ${T('新建文档','New doc')}</button></div></div>`;
+    return;
+  }
+  if (!state.wsDoc || !docs.find(d => d.id === state.wsDoc)) state.wsDoc = docs[0].id;
+  const groups = [];
+  for (const d of docs) if (!groups.includes(d.group)) groups.push(d.group);
+  const side = groups.map(g => `<div class="ws-sgroup"><div class="ws-sg-title">${escHtml(g)}</div>
+      ${docs.filter(d => d.group === g).map(d => `<button class="ws-slink ${state.wsDoc===d.id?'active':''}" onclick="wsOpenDoc('${d.id}')">${escHtml(d.title)}</button>`).join('')}
+    </div>`).join('') + `<button class="ws-slink" onclick="wsNewDoc()" style="color:var(--w-ac2)">＋ ${T('新建文档','New doc')}</button>`;
+  const d = docs.find(x => x.id === state.wsDoc);
+  const editing = state.wsDocEditing;
+  el.innerHTML = `<div class="ws-body">
+    <div class="ws-side">${side}</div>
+    <div class="ws-main"><div class="ws-docwrap">
+      <div class="ws-dochead">
+        <div class="ws-doctitle">${escHtml(d.title)}</div>
+        <span class="ws-progtxt">${(d.body||'').length} ${T('字','ch')} · ${escHtml((d.updatedAt||'').replace('T',' ').slice(0,16))}</span>
+        ${editing
+          ? `<button class="ws-btn primary" onclick="wsSaveDoc()">✓ ${T('保存','Save')}</button>
+             <button class="ws-btn" onclick="wsCancelDoc()">${T('取消','Cancel')}</button>`
+          : `<button class="ws-btn ${wsInDeliv(d.id)?'primary':''}" onclick="wsToggleDeliv('doc','${d.id}')">
+               ${wsInDeliv(d.id) ? '✓ '+T('已在交付','In delivery') : '📤 '+T('放入交付','Publish')}</button>
+             <button class="ws-btn" onclick="wsEditDoc()">✎ ${T('编辑','Edit')}</button>
+             <button class="ws-btn" onclick="wsRenameDoc()">🏷 ${T('改名','Rename')}</button>
+             <button class="ws-btn ghost" onclick="wsDeleteDoc()">${T('删除','Delete')}</button>`}
+      </div>
+      ${editing
+        ? `<textarea class="ws-docedit" id="ws-doc-edit">${escHtml(d.body||'')}</textarea>`
+        : `<div class="ws-md">${wsMd(d.body||'')}</div>`}
+    </div></div></div>`;
+}
+function wsOpenDoc(id) { state.wsDoc = id; state.wsDocEditing = false; wsRender(); }
+function wsEditDoc() { state.wsDocEditing = true; wsRender(); }
+function wsCancelDoc() { state.wsDocEditing = false; wsRender(); }
+function wsSaveDoc() {
+  const p = wsProj(); const d = (p.docs||[]).find(x => x.id === state.wsDoc);
+  const ta = document.getElementById('ws-doc-edit'); if (!d || !ta) return;
+  d.body = ta.value; d.updatedAt = new Date().toISOString();
+  state.wsDocEditing = false; wsScheduleSave(); wsRender();
+}
+function wsNewDoc() {
+  const p = wsProj(); if (!p) return;
+  const title = prompt(T('文档标题','Doc title')); if (!title) return;
+  const group = prompt(T('归到哪个分组？','Group?'), ((p.docs||[])[0] || {}).group || '') || T('未分组','Ungrouped');
+  p.docs = p.docs || [];
+  const id = 'd_' + Date.now().toString(36);
+  p.docs.push({ id, group, title, body:'', updatedAt:new Date().toISOString() });
+  state.wsDoc = id; state.wsDocEditing = true; wsScheduleSave(); wsRender();
+}
+// 改文档本身的名字。若这份文档已放入交付、且没在交付里单独改过名，交付里的名字跟着改。
+function wsRenameDoc() {
+  const p = wsProj(); const d = (p.docs || []).find(x => x.id === state.wsDoc); if (!d) return;
+  const name = prompt(T('文档名称','Doc title'), d.title);
+  if (name === null) return;
+  const t = name.trim(); if (!t || t === d.title) return;
+  d.title = t; d.updatedAt = new Date().toISOString();
+  wsScheduleSave(); wsRender();
+  const it = ((state.deliv && state.deliv.items) || []).find(x => x.id === d.id);
+  if (it && !it.renamed) wsDelivSync();
+}
+function wsDeleteDoc() {
+  const p = wsProj(); const d = (p.docs||[]).find(x => x.id === state.wsDoc); if (!d) return;
+  if (!confirm(T('删除文档「','Delete doc "') + d.title + T('」？不可撤销。','"? This cannot be undone.'))) return;
+  p.docs = p.docs.filter(x => x.id !== d.id); state.wsDoc = null; wsScheduleSave(); wsRender();
+}
+
+// ---------- 精简 Markdown 渲染 ----------
+function wsMd(src) {
+  const lines = String(src).replace(/\r/g,'').split('\n');
+  let out = '', i = 0;
+  const inline = s => escHtml(s)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+    .replace(/~~([^~]+)~~/g, '<del>$1</del>')
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  while (i < lines.length) {
+    const l = lines[i];
+    if (/^\s*$/.test(l)) { i++; continue; }
+    if (/^```/.test(l)) { let b = ''; i++; while (i < lines.length && !/^```/.test(lines[i])) b += lines[i++] + '\n'; i++;
+      out += `<pre style="background:var(--w-surf3);padding:12px;border-radius:7px;overflow-x:auto"><code>${escHtml(b)}</code></pre>`; continue; }
+    const h = l.match(/^(#{1,6})\s+(.*)$/);
+    if (h) { const n = Math.min(h[1].length, 4); out += `<h${n}>${inline(h[2])}</h${n}>`; i++; continue; }
+    if (/^\s*(-{3,}|\*{3,})\s*$/.test(l)) { out += '<hr>'; i++; continue; }
+    if (/^\s*\|/.test(l) && i+1 < lines.length && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i+1])) {
+      const cells = r => r.trim().replace(/^\||\|$/g,'').split('|').map(c => c.trim());
+      const head = cells(l); i += 2; let rows = '';
+      while (i < lines.length && /^\s*\|/.test(lines[i])) { rows += '<tr>' + cells(lines[i]).map(c => `<td>${inline(c)}</td>`).join('') + '</tr>'; i++; }
+      out += `<div class="ws-mdtable"><table><thead><tr>${head.map(c => `<th>${inline(c)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+      continue;
+    }
+    if (/^\s*>/.test(l)) { let b = ''; while (i < lines.length && /^\s*>/.test(lines[i])) b += lines[i++].replace(/^\s*>\s?/,'') + '\n';
+      out += `<blockquote>${b.split('\n').filter(Boolean).map(x => `<p>${inline(x)}</p>`).join('')}</blockquote>`; continue; }
+    if (/^\s*([-*+]|\d+\.)\s+/.test(l)) {
+      const ord = /^\s*\d+\./.test(l); let items = '';
+      while (i < lines.length && /^\s*([-*+]|\d+\.)\s+/.test(lines[i])) items += `<li>${inline(lines[i++].replace(/^\s*([-*+]|\d+\.)\s+/,''))}</li>`;
+      out += ord ? `<ol>${items}</ol>` : `<ul>${items}</ul>`; continue;
+    }
+    let par = '';
+    while (i < lines.length && !/^\s*$/.test(lines[i]) && !/^(#{1,6}\s|\s*[-*+]\s|\s*\d+\.\s|\s*>|\s*\||```)/.test(lines[i])) par += lines[i++] + ' ';
+    if (par.trim()) out += `<p>${inline(par.trim())}</p>`; else i++;
+  }
+  return out;
+}
+
+// ---------- 字符级 diff（中文按字比对） ----------
+function wsDiff(a, b) {
+  a = String(a||''); b = String(b||'');
+  if (a === b) return [[0, a]];
+  if (a.length * b.length > 250000) return [[-1, a], [1, b]];
+  const A = [...a], B = [...b], n = A.length, m = B.length;
+  const dp = Array.from({length:n+1}, () => new Uint32Array(m+1));
+  for (let x = n-1; x >= 0; x--) for (let y = m-1; y >= 0; y--)
+    dp[x][y] = A[x] === B[y] ? dp[x+1][y+1] + 1 : Math.max(dp[x+1][y], dp[x][y+1]);
+  const res = []; let x = 0, y = 0;
+  const push = (op, ch) => { if (res.length && res[res.length-1][0] === op) res[res.length-1][1] += ch; else res.push([op, ch]); };
+  while (x < n && y < m) {
+    if (A[x] === B[y]) { push(0, A[x]); x++; y++; }
+    else if (dp[x+1][y] >= dp[x][y+1]) { push(-1, A[x]); x++; }
+    else { push(1, B[y]); y++; }
+  }
+  while (x < n) push(-1, A[x++]);
+  while (y < m) push(1, B[y++]);
+  return res;
+}
+function wsDiffMark(a, b) {
+  return wsDiff(a, b).map(([op, s]) => op === 0 ? s : op === 1 ? `【+${s}】` : `【-${s}】`).join('');
+}
+
+// ---------- 交付（放入交付 → 团队用带码链接只读查看）----------
+// 写入端用**本人的 PAT** 写私有库 delivery-inbox；读取端由 Cloudflare Function 代理，
+// 那把 token 只需 Contents: Read。**没点过「放入交付」的东西根本不在那个库里**——
+// 不是靠过滤挡住，是它压根不在那儿。
+const DELIV_REPO = 'delivery-inbox';
+const DELIV_SITE = 'https://personal-hub-7uc.pages.dev';   // 交付链接的站点；换域名时同步改这里
+
+async function delivGet(path) {
+  const { owner, token } = state.settings;
+  const r = await fetch(`${GITHUB_API}/repos/${owner}/${DELIV_REPO}/contents/${path}?_=${Date.now()}`, {
+    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' } });
+  if (!r.ok) {
+    let msg = ''; try { msg = (await r.json()).message || ''; } catch(e) {}
+    return { data: null, sha: null, status: r.status, msg };
+  }
+  const j = await r.json();
+  try { return { data: JSON.parse(b64Decode(j.content)), sha: j.sha, status: 200 }; }
+  catch { return { data: null, sha: j.sha, status: 200 }; }
+}
+// 把 GitHub 的原始状态翻译成能直接照做的一句话。
+// ⚠️ 最常见的原因：app 用的这把令牌是按仓库授权的，只圈了主数据仓库，够不到 delivery-inbox。
+function delivWhy(status, msg) {
+  if (status === 404) return T('令牌看不到 delivery-inbox 仓库（多半是这把令牌没把它勾进授权范围）','Token cannot see delivery-inbox');
+  if (status === 403) return T('令牌没有 delivery-inbox 的权限','Token lacks permission on delivery-inbox');
+  if (status === 401) return T('令牌无效或已过期','Token invalid or expired');
+  if (status === 422) return T('文件版本冲突，请再点一次','Version conflict, click again');
+  return `${status}${msg ? ' · ' + msg : ''}`;
+}
+async function delivPut(path, obj, sha, msg) {
+  const { owner, token } = state.settings;
+  const body = { message: msg, content: b64Encode(JSON.stringify(obj, null, 2)), ...(sha ? { sha } : {}) };
+  const r = await fetch(`${GITHUB_API}/repos/${owner}/${DELIV_REPO}/contents/${path}`, {
+    method: 'PUT',
+    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json',
+               'Content-Type': 'application/json' },
+    body: JSON.stringify(body) });
+  return r;
+}
+function delivFile(p) { return `${p.id}/delivery.json`; }
+
+// 按**当前**数据生成一个交付项。放入交付时用它，之后每次保存也用它重建——
+// 所以「放入交付」＝订阅这一项，链接会一直跟着最新内容走，团队不用换链接。
+// keep：交付项被手动改过名时传进来，自动跟随时不要把名字覆盖回文档标题
+function delivBuild(p, kind, id, keep) {
+  if (kind === 'doc') {
+    const d = (p.docs || []).find(x => x.id === id);
+    return d ? { id, kind: 'doc', title: keep || d.title, body: d.body || '', ...(keep ? { renamed: true } : {}) } : null;
+  }
+  if (kind === 'list') {
+    const ts = wsDelivTasks(p), st = wsStats(p);
+    const ST = { todo:'未写', draft:'草稿', done:'已定稿' };
+    // 每个大分组单独一张表——207 行堆成一张表没法看
+    const names = [...new Set(ts.map(t => t.group))];
+    const groups = names.map(g => {
+      const gt = ts.filter(t => t.group === g);
+      const done = gt.filter(t => t.status === 'done').length;
+      const draft = gt.filter(t => t.status === 'draft').length;
+      return { name: g,
+        summary: `${gt.length} 条 · 已定稿 ${done} · 草稿 ${draft} · 未写 ${gt.length - done - draft}`,
+        rows: gt.map(t => ({ 子组:t.sub, 条目:t.title, 状态:ST[t.status],
+          内容:(t.fields||[]).filter(f=>f.value).map(f=>`${f.label}：${f.value}`).join('　') })) };
+    });
+    return { id, kind: 'list', title: keep || `${p.name}｜交付清单`, ...(keep ? { renamed: true } : {}),
+      summary: `共 ${st.total} 条 · 已定稿 ${st.done} · 草稿 ${st.draft} · 未写 ${st.todo} · 完成度 ${st.pct}%`,
+      columns: ['子组','条目','状态','内容'],      // 分组已成表头，不再占一列
+      groups };
+  }
+  return null;
+}
+
+// 每次保存后把已放入交付的那几项按最新数据刷一遍。内容没变就不写，避免无谓提交。
+let _delivSyncing = false;
+async function wsDelivSync() {
+  if (_delivSyncing) return;
+  const p = wsProj();
+  if (!p || !hasSettings() || !state.deliv || !(state.deliv.items || []).length) return;
+  if (state.delivErr) return;                       // 上次就够不到那个仓库，别反复刷错误
+  const fresh = state.deliv.items.map(it => delivBuild(p, it.kind, it.id, it.renamed ? it.title : null) || it);
+  if (JSON.stringify(fresh) === JSON.stringify(state.deliv.items)) return;   // 没变
+  _delivSyncing = true;
+  try {
+    const cur = await delivGet(delivFile(p));
+    if (cur.status !== 200 && cur.status !== 404) { state.delivErr = delivWhy(cur.status, cur.msg); return; }
+    state.delivSha = cur.sha;
+    state.deliv.items = fresh;
+    state.deliv.updatedAt = new Date().toISOString();
+    const r = await delivPut(delivFile(p), state.deliv, state.delivSha, `deliver(${p.id}): 跟随更新`);
+    if (r.ok) state.delivSha = (await r.json()).content.sha;
+  } finally { _delivSyncing = false; }
+}
+
+// 手动刷新交付内容。
+// 为什么要有它：wsDelivSync 只挂在 app 内的保存流程上，而文档也可能被 app 之外改动
+// （比如在 app 之外直接写数据文件），那种改动不经过 wsSave，链接就会静静停在旧版本。
+// 顺序不能反：**先把工作区拉成最新，再刷交付**——否则等于拿浏览器里的旧内容去覆盖链接。
+async function wsDelivRefresh() {
+  if (!hasSettings()) { showSettings(); return; }
+  setSyncStatus('syncing', T('刷新交付内容…','Refreshing…'));
+  if (!(await wsLoad())) return;                    // 拉不到最新就停，wsLoad 自己已经报过错
+  if (!(await wsDelivLoad(true))) { setSyncStatus('error', state.delivErr); wsRender(); return; }
+  const before = JSON.stringify(state.deliv.items || []);
+  await wsDelivSync();
+  if (state.delivErr) { setSyncStatus('error', state.delivErr); wsRender(); return; }
+  const changed = JSON.stringify(state.deliv.items || []) !== before;
+  setSyncStatus('success', changed ? T('链接内容已更新','Link updated') : T('链接已是最新','Already up to date'));
+  setTimeout(() => setSyncStatus('idle', T('已同步','Synced')), 2000);
+  wsRender();
+}
+
+async function wsDelivLoad(silent) {
+  const p = wsProj(); if (!p || !hasSettings()) return false;
+  const [d, k] = await Promise.all([delivGet(delivFile(p)), delivGet('keys.json')]);
+  // ⚠️ 读不到就必须停下。此前的 bug：读失败时 sha 为 null，代码却继续拿 null 去 PUT
+  // 一个已存在的文件 → GitHub 必然 422，于是「读失败」被伪装成了「写失败」。
+  const bad = [d, k].find(x => x.status !== 200 && x.status !== 404);
+  if (bad) {
+    state.delivErr = delivWhy(bad.status, bad.msg);
+    if (!silent) wsRender();
+    return false;
+  }
+  state.delivErr = null;
+  state.deliv = (d.data && Array.isArray(d.data.items)) ? d.data : { project: p.name, updatedAt: null, items: [] };
+  state.delivSha = d.sha; state.delivKeys = k.data || {}; state.delivKeysSha = k.sha;
+  if (!silent) wsRender();
+  return true;
+}
+function wsInDeliv(id) { return !!((state.deliv && state.deliv.items) || []).find(x => x.id === id); }
+
+async function wsToggleDeliv(kind, id) {
+  if (!hasSettings()) { showSettings(); return; }
+  const p = wsProj(); if (!p) return;
+  setSyncStatus('syncing', T('放入交付中…','Publishing…'));
+  // 每次都先拉最新，避免覆盖别处的改动；**拉不到就停**，不要拿 null sha 去写
+  if (!(await wsDelivLoad(true))) { setSyncStatus('error', state.delivErr); wsRender(); return; }
+  const items = state.deliv.items;
+  const at = items.findIndex(x => x.id === id);
+  if (at >= 0) { items.splice(at, 1); }
+  else { const it = delivBuild(p, kind, id); if (!it) return; items.push(it); }
+  state.deliv.project = p.name;
+  state.deliv.updatedAt = new Date().toISOString();
+  const r = await delivPut(delivFile(p), state.deliv, state.delivSha,
+    `deliver(${p.id}): ${at >= 0 ? '移出' : '放入'} ${id}`);
+  if (!r.ok) {
+    let m = r.status; try { m = (await r.json()).message || m; } catch(e) {}
+    state.delivErr = delivWhy(r.status, m);
+    setSyncStatus('error', state.delivErr); wsRender(); return;
+  }
+  state.delivSha = (await r.json()).content.sha;
+  setSyncStatus('success', at >= 0 ? T('已移出交付','Removed') : T('已放入交付','Published'));
+  wsRender();
+}
+
+// 交付里显示的名字可以和文档标题不同——给团队看的名字未必是自己归档用的名字
+async function wsDelivRename(id) {
+  const it = ((state.deliv && state.deliv.items) || []).find(x => x.id === id); if (!it) return;
+  const name = prompt(T('这一件在链接里显示的名字','Name shown in the link'), it.title);
+  if (name === null) return;
+  const t = name.trim(); if (!t || t === it.title) return;
+  const p = wsProj();
+  setSyncStatus('syncing', T('改名中…','Renaming…'));
+  if (!(await wsDelivLoad(true))) { setSyncStatus('error', state.delivErr); wsRender(); return; }
+  const cur = state.deliv.items.find(x => x.id === id); if (!cur) return;
+  cur.title = t; cur.renamed = true;
+  state.deliv.updatedAt = new Date().toISOString();
+  const r = await delivPut(delivFile(p), state.deliv, state.delivSha, `deliver(${p.id}): 改名 ${t}`);
+  if (!r.ok) {
+    let m = r.status; try { m = (await r.json()).message || m; } catch(e) {}
+    state.delivErr = delivWhy(r.status, m); setSyncStatus('error', state.delivErr); wsRender(); return;
+  }
+  state.delivSha = (await r.json()).content.sha;
+  setSyncStatus('success', T('已改名','Renamed')); wsRender();
+}
+
+async function wsDelivKeyReset() {
+  if (!hasSettings()) { showSettings(); return; }
+  const p = wsProj(); if (!p) return;
+  if (state.delivKeys && state.delivKeys[p.id] &&
+      !confirm(T('重置后旧链接立刻失效，确定？','Reset will invalidate the old link. Continue?'))) return;
+  if (!(await wsDelivLoad(true))) { setSyncStatus('error', state.delivErr); wsRender(); return; }
+  const key = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+    .map(b => 'abcdefghijkmnpqrstuvwxyz23456789'[b % 32]).join('');
+  state.delivKeys[p.id] = { key, label: p.name, updatedAt: new Date().toISOString() };
+  const r = await delivPut('keys.json', state.delivKeys, state.delivKeysSha, `keys: 重置 ${p.id}`);
+  if (!r.ok) {
+    let m = r.status; try { m = (await r.json()).message || m; } catch(e) {}
+    state.delivErr = delivWhy(r.status, m);
+    setSyncStatus('error', state.delivErr); wsRender(); return;
+  }
+  state.delivKeysSha = (await r.json()).content.sha;
+  setSyncStatus('success', T('新链接已生成','New link ready'));
+  wsRender();
+}
+function wsDelivLink() {
+  const p = wsProj(); if (!p) return '';
+  const e = state.delivKeys && state.delivKeys[p.id];
+  return e ? `${DELIV_SITE}/d?p=${encodeURIComponent(p.id)}&k=${e.key}` : '';
+}
+function wsCopyLink() {
+  const l = wsDelivLink(); if (!l) return;
+  navigator.clipboard.writeText(l).then(() => setSyncStatus('success', T('链接已复制','Link copied')));
+}
+
+// ---------- 导出 ----------
+// 交付物是给对接的人看的，不是给机器看的：
+// 一律导出自带样式的 HTML，双击即可在浏览器/手机打开，变化用颜色标注，内置存为 PDF。
+function wsHtmlDoc(title, subtitle, bodyHtml) {
+  return `<!doctype html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escHtml(title)}</title><style>
+:root{--bg:#EFEDE4;--surf:#FBF9F3;--surf2:#F5F2E8;--surf3:#E9E5D7;--bd:#DFD8C6;
+--tx:#3A372E;--tx2:#6C6656;--tx3:#9A937F;--ac:#5E7F5F;--ac2:#4C6B4E;
+--add:#2F6B45;--addbg:#DFF0E2;--del:#9B4A3C;--delbg:#F6E2DE;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);line-height:1.8;
+font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+padding:32px 20px 80px}
+.wrap{max-width:860px;margin:0 auto}
+header{background:var(--surf);border:1px solid var(--bd);border-radius:14px;padding:26px 30px;margin-bottom:22px}
+h1{font-size:1.6rem;margin-bottom:8px}
+.sub{color:var(--tx2);font-size:.92rem}
+.meta{color:var(--tx3);font-size:.84rem;margin-top:10px}
+.stats{display:flex;gap:26px;flex-wrap:wrap;margin-top:18px}
+.stat b{display:block;font-size:1.7rem;color:var(--ac2);line-height:1.2}
+.stat span{font-size:.8rem;color:var(--tx3)}
+.bar{height:10px;border-radius:99px;background:var(--surf3);overflow:hidden;margin-top:16px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--ac),#8FB08F)}
+h2{font-size:1.15rem;margin:22px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--bd);color:var(--ac2)}
+h3{font-size:.94rem;margin:14px 0 5px;color:var(--tx2);font-weight:600}
+.item{background:var(--surf);border:1px solid var(--bd);border-radius:11px;padding:16px 20px;margin-bottom:12px}
+.item .t{font-weight:700;font-size:1.02rem;margin-bottom:6px}
+.pill{display:inline-block;font-size:.74rem;padding:2px 10px;border-radius:99px;
+background:var(--surf3);color:var(--tx3);margin-left:8px;vertical-align:middle;font-weight:400}
+.pill.done{background:#E4EBE2;color:var(--ac2)}
+.pill.draft{background:#F4EAD5;color:#A8762A}
+.f{margin:10px 0}
+.f .lb{font-size:.8rem;color:var(--tx3);margin-bottom:3px}
+.f .vl{white-space:pre-wrap}
+.oldv{color:var(--tx3);text-decoration:line-through;text-decoration-color:var(--tx3)}
+.diff{background:var(--surf2);border-left:3px solid var(--ac);border-radius:0 8px 8px 0;
+padding:10px 14px;margin-top:8px;white-space:pre-wrap}
+ins{background:var(--addbg);color:var(--add);text-decoration:none;border-radius:3px;padding:1px 2px;font-weight:600}
+del{background:var(--delbg);color:var(--del);border-radius:3px;padding:1px 2px}
+.legend{font-size:.82rem;color:var(--tx2);background:var(--surf2);border:1px dashed var(--bd);
+border-radius:9px;padding:11px 15px;margin-bottom:20px}
+.ck{color:var(--ac2);margin-right:5px}
+.ck.no{color:var(--tx3)}
+.li{padding:2px 0;break-inside:avoid;page-break-inside:avoid;font-size:.92rem;line-height:1.5}
+.sub2{color:var(--tx2);font-size:.85rem;margin-left:20px;line-height:1.45}
+/* 列宽由清单里最长的条目算出，浏览器据此在任何屏宽下自动排满列数 */
+.cols{column-gap:30px;margin-bottom:6px}
+.cols h3{break-after:avoid;page-break-after:avoid}
+.pb{position:fixed;right:20px;bottom:20px;background:var(--ac);color:#fff;border:none;
+border-radius:99px;padding:12px 22px;font-size:.9rem;cursor:pointer;
+box-shadow:0 4px 16px rgba(0,0,0,.18);font-family:inherit}
+.pb:hover{background:var(--ac2)}
+@media print{body{background:#fff;padding:0}.pb{display:none}
+header,.item{border-color:#ccc;box-shadow:none}h2{page-break-after:avoid}.item{page-break-inside:avoid}}
+</style></head><body><div class="wrap">
+<header><h1>${escHtml(title)}</h1>${subtitle ? `<div class="sub">${subtitle}</div>` : ''}
+<div class="meta">导出时间：${new Date().toLocaleString('zh-CN')}</div></header>
+${bodyHtml}
+</div><button class="pb" onclick="window.print()">🖨 打印 / 存为 PDF</button></body></html>`;
+}
+// 字符级 diff 渲染成带颜色的 HTML（不是【+】【-】符号）
+function wsDiffHtml(a, b) {
+  return wsDiff(a, b).map(([op, t]) =>
+    op === 0 ? escHtml(t) : op === 1 ? `<ins>${escHtml(t)}</ins>` : `<del>${escHtml(t)}</del>`).join('');
+}
+function wsDownload(name, text) {
+  const type = /\.html?$/i.test(name) ? 'text/html;charset=utf-8'
+             : /\.csv$/i.test(name) ? 'text/csv;charset=utf-8' : 'text/plain;charset=utf-8';
+  const blob = new Blob([text], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+function wsStamp() { const d = new Date(); const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`; }
+
+function wsRenderExport(el, p) {
+  const st = wsStats(p);
+  const pending = wsDelivTasks(p).filter(t => wsChanged(t));
+  el.innerHTML = `
+    <div class="ws-card">
+      <div class="ws-statrow">
+        <div class="ws-stat"><b>${st.total}</b><span>${T('交付条目','Deliverable')}</span></div>
+        <div class="ws-stat"><b>${st.done}</b><span>${T('已定稿','Final')}</span></div>
+        <div class="ws-stat"><b>${st.draft}</b><span>${T('草稿','Draft')}</span></div>
+        <div class="ws-stat"><b>${st.todo}</b><span>${T('未写','To write')}</span></div>
+        <div class="ws-stat"><b>${pending.length}</b><span>${T('待交付','Pending delivery')}</span></div>
+      </div>
+      <p class="ws-hint">${T('📄 导出的是排好版的网页文件，双击就能在电脑或手机上打开，右下角可一键存成 PDF——直接发给对接的人即可。','📄 Exports are self-contained styled web pages — open by double-click on desktop or phone, one tap to save as PDF.')}<br>${T('⚠️ 三个导出都只含交付内容（玩家能看到的）；内部设定永不导出。','⚠️ All exports contain deliverable (player-facing) items only; internal notes are never exported.')}<br>${T('上次交付导出：','Last delivery export: ')}${p.lastExportAt ? escHtml(p.lastExportAt.replace('T',' ').slice(0,16)) : T('从未','never')}</p>
+    </div>
+    <div class="ws-card">
+      <h3>🔗 ${T('交付链接','Delivery link')}</h3>
+      ${state.delivErr ? `<div class="ws-old" style="border-left-color:var(--w-red);color:var(--w-red)">
+        <span class="lb">${T('出错了','Error')}</span>${escHtml(state.delivErr)}<br>
+        <span style="color:var(--w-tx2)">${T('怎么修：去 GitHub 的 Personal access tokens，找到本 app 用的那把令牌，把 delivery-inbox 加进 Repository access，权限给 Contents: Read and write。','Fix: add delivery-inbox to your token\'s repository access with Contents: Read and write.')}</span>
+      </div>` : ''}
+      <p>${T('把要给团队看的东西点「放入交付」，他们用这一条链接就能看到——不用再导出文件发来发去。链接只能看到这个项目，而且只能看到你放进去的那几件。','Mark items as published; your team opens one link. It only ever shows this project, and only what you put in.')}</p>
+      <p><b>${T('链接是长期的，不用反复生成。','The link is permanent.')}</b>${T('「放入交付」＝订阅这一项：你之后每次改动、每写一条，这条链接里的内容都会跟着更新，团队随时打开都是最新的。只有点「重置」才会作废旧链接。','Publishing subscribes an item: every later edit syncs to the same link automatically. Only "reset" invalidates it.')}</p>
+      ${wsDelivLink()
+        ? `<div class="ws-old" style="user-select:all;word-break:break-all">${escHtml(wsDelivLink())}</div>
+           <button class="ws-btn primary" onclick="wsCopyLink()">${T('复制链接','Copy link')}</button>
+           <button class="ws-btn ghost" onclick="wsDelivRefresh()">${T('刷新内容','Refresh')}</button>
+           <button class="ws-btn ghost" onclick="wsDelivKeyReset()">${T('换一条（旧链接立即作废）','Rotate link')}</button>`
+        : `<button class="ws-btn primary" onclick="wsDelivKeyReset()">${T('生成交付链接（只需这一次）','Create the link (once)')}</button>`}
+      <div class="ws-hint" style="margin-top:10px">${T('当前已放入 ','Published ')}<b>${((state.deliv && state.deliv.items) || []).length}</b> ${T('件（点名字可改在链接里显示的名称）','items — click a name to rename it in the link')}<br>${T('你在这里写的东西会自动同步；只有文档是在 app 之外被改的（比如 agent 直接改），才需要点一下「刷新内容」。','Edits here sync automatically; use "Refresh" only when a doc was changed outside this app.')}</div>
+      ${((state.deliv && state.deliv.items) || []).map(x =>
+        `<div class="ws-vrow"><span class="vtx">${escHtml(x.title)}${x.renamed ? ` <span style="color:var(--w-tx3);font-size:.76rem">${T('已改名','renamed')}</span>` : ''}</span>
+           <button class="ws-btn ghost" style="padding:2px 10px" onclick="wsDelivRename('${x.id}')">✎ ${T('改名','Rename')}</button></div>`).join('')}
+      <div class="ws-actions" style="margin-top:10px">
+        <button class="ws-btn ${wsInDeliv('checklist')?'primary':''}" onclick="wsToggleDeliv('list','checklist')">
+          ${wsInDeliv('checklist') ? '✓ '+T('交付清单已在链接里（自动跟随）','Checklist live') : '📤 '+T('把交付清单也放进去','Publish the checklist')}</button>
+      </div>
+    </div>
+    <div class="ws-card">
+      <h3>📋 ${T('导出交付清单','Export deliverable checklist')}</h3>
+      <p>${T('交付条目 + 当前状态 + 进度，按分组排列。这才是要核对的工作量。','Deliverable items with status and progress. This is the workload to align on.')}</p>
+      <button class="ws-btn primary" onclick="wsExportChecklist()">${T('下载（网页，可打印成 PDF）','Download (web page / PDF)')}</button>
+      <button class="ws-btn" onclick="wsExportChecklistCsv()">${T('下载表格 CSV','Download CSV')}</button>
+    </div>
+    <div class="ws-card">
+      <h3>🚚 ${T('导出交付包（增量，带变化标注）','Delivery export (incremental, change-marked)')}</h3>
+      <p>${T('只导出自上次交付以来「新增」和「修改」的条目。修改的会同时给出旧稿、新稿，以及逐字标注的变化（新增标绿、删除标红划线），方便对接的人一眼看出改了哪。','Only items added or changed since the last delivery. Changed items show the old text, the new text, and a character-level change map (additions in green, deletions struck through in red).')}</p>
+      <button class="ws-btn primary" onclick="wsExportDelivery(true)">${T('导出并标记为已交付','Export and mark delivered')}</button>
+      <button class="ws-btn" onclick="wsExportDelivery(false)">${T('只预览，不标记','Preview only')}</button>
+      <div class="ws-hint">${T('「标记为已交付」会把当前文案存为下一次比对的基线。只预览不会动基线。','"Mark delivered" stores the current text as the baseline for the next comparison. Preview does not touch it.')}</div>
+    </div>
+    <div class="ws-card">
+      <h3>📦 ${T('导出全量文案','Export everything')}</h3>
+      <p>${T('所有已写内容的完整快照，不做增量比对。','A full snapshot of everything written, without incremental comparison.')}</p>
+      <button class="ws-btn primary" onclick="wsExportFull()">${T('下载（网页，可打印成 PDF）','Download (web page / PDF)')}</button>
+    </div>`;
+}
+
+function wsExportChecklist() {
+  const p = wsProj(); const tasks = wsDelivTasks(p); const st = wsStats(p);
+  const ST = { todo:'未写', draft:'草稿', done:'已定稿' };
+  // 列宽 = 清单里最长的条目（标题+状态），中日文按 2 格算；字段内容在列内自动换行
+  const w = str => [...String(str)].reduce((a,c) => a + (/[\u2e80-\u9fff\u3000-\u303f\uff00-\uffef]/.test(c) ? 2 : 1), 0);
+  const maxW = tasks.reduce((m, t) => Math.max(m, w(t.title) + 6), 0);
+  const colCh = Math.min(Math.max(maxW, 20), 58);   // 兜底：太窄不好读，太宽等于单列
+  let body = `<header style="margin-bottom:18px"><div class="stats">
+      <div class="stat"><b>${st.total}</b><span>条目</span></div>
+      <div class="stat"><b>${st.done}</b><span>已定稿</span></div>
+      <div class="stat"><b>${st.draft}</b><span>草稿</span></div>
+      <div class="stat"><b>${st.todo}</b><span>未写</span></div>
+    </div><div class="bar"><i style="width:${st.pct}%"></i></div>
+    <div class="meta">完成度 ${st.pct}%</div></header>`;
+  const groups = [...new Set(tasks.map(t => t.group))];
+  for (const g of groups) {
+    const gt = tasks.filter(t => t.group === g);
+    body += `<h2>${escHtml(g)} <span class="pill">${gt.filter(t=>t.status==='done').length}/${gt.length}</span></h2>`;
+    body += `<div class="cols" style="column-width:${colCh}ch">`;
+    let sub = null;
+    for (const t of gt) {
+      if (t.sub !== sub) { body += `<h3>${escHtml(t.sub||'')}</h3>`; sub = t.sub; }
+      const dn = t.status === 'done';
+      body += `<div class="li"><span class="ck ${dn?'':'no'}">${dn?'☑':'☐'}</span>${escHtml(t.title)}` +
+              `<span class="pill ${t.status}">${ST[t.status]}</span>`;
+      for (const f of (t.fields||[])) if (f.value)
+        body += `<div class="sub2">${escHtml(f.label)}：${escHtml(f.value)}</div>`;
+      body += `</div>`;
+    }
+    body += `</div>`;
+  }
+  wsDownload(`${p.name}-交付清单-${wsStamp()}.html`, wsHtmlDoc(`${p.name}｜交付清单`, '', body));
+}
+
+function wsExportChecklistCsv() {
+  const p = wsProj();
+  const q = s => `"${String(s||'').replace(/"/g,'""')}"`;
+  let csv = '﻿分组,子组,条目,状态,字段,内容\n';
+  for (const t of wsDelivTasks(p)) {
+    if (!(t.fields||[]).length) { csv += [t.group,t.sub,t.title,WS_STATUS[t.status],'',''].map(q).join(',') + '\n'; continue; }
+    for (const f of t.fields) csv += [t.group,t.sub,t.title,WS_STATUS[t.status],f.label,f.value].map(q).join(',') + '\n';
+  }
+  wsDownload(`${p.name}-交付清单-${wsStamp()}.csv`, csv);
+}
+
+function wsExportDelivery(mark) {
+  const p = wsProj();
+  const ST = { todo:'未写', draft:'草稿', done:'已定稿' };
+  const added = [], changed = [];
+  for (const t of wsDelivTasks(p)) {
+    if (!wsChanged(t)) continue;
+    (t.exported ? changed : added).push(t);
+  }
+  const dels = p.deletedSinceExport || [];
+  if (!added.length && !changed.length && !dels.length) {
+    alert(T('自上次交付以来没有变化。','Nothing changed since the last delivery.')); return;
+  }
+  let body = `<div class="legend">
+    对比基线：${p.lastExportAt ? new Date(p.lastExportAt).toLocaleString('zh-CN') : '（首次交付，全部视为新增）'}<br>
+    变化标注：<ins>绿色</ins> ＝ 这次新增的字，<del>红色删除线</del> ＝ 这次删掉的字，未标注处没动过。
+  </div>
+  <header style="margin-bottom:22px"><div class="stats">
+    <div class="stat"><b>${added.length}</b><span>新增</span></div>
+    <div class="stat"><b>${changed.length}</b><span>修改</span></div>
+    <div class="stat"><b>${dels.length}</b><span>删除</span></div>
+  </div></header>`;
+
+  const block = (t, isChg) => {
+    let h = `<div class="item"><div class="t">${escHtml(t.title)}<span class="pill ${t.status}">${ST[t.status]}</span></div>`;
+    h += `<div class="meta" style="color:var(--tx3);font-size:.8rem">${escHtml(t.group)} · ${escHtml(t.sub||'')}</div>`;
+    for (const f of (t.fields||[])) {
+      const oldV = (t.exported && t.exported[f.key]) || '', newV = f.value || '';
+      if (isChg && oldV === newV) continue;
+      if (!isChg && !newV) continue;
+      h += `<div class="f"><div class="lb">${escHtml(f.label)}</div>`;
+      if (isChg) {
+        h += `<div class="vl oldv">${escHtml(oldV || '（原为空）')}</div>`;
+        h += `<div class="vl" style="margin-top:4px">${escHtml(newV || '（已清空）')}</div>`;
+        h += `<div class="diff">${wsDiffHtml(oldV, newV)}</div>`;
+      } else {
+        h += `<div class="vl">${escHtml(newV)}</div>`;
+      }
+      h += `</div>`;
+    }
+    return h + `</div>`;
+  };
+
+  if (added.length) {
+    body += `<h2>🆕 新增（${added.length}）</h2>`;
+    let g = null;
+    for (const t of added) {
+      if (t.group + t.sub !== g) { body += `<h3>${escHtml(t.group)} · ${escHtml(t.sub||'')}</h3>`; g = t.group + t.sub; }
+      body += block(t, false);
+    }
+  }
+  if (changed.length) {
+    body += `<h2>✏️ 修改（${changed.length}）</h2>`;
+    let g = null;
+    for (const t of changed) {
+      if (t.group + t.sub !== g) { body += `<h3>${escHtml(t.group)} · ${escHtml(t.sub||'')}</h3>`; g = t.group + t.sub; }
+      body += block(t, true);
+    }
+  }
+  if (dels.length) {
+    body += `<h2>🗑 删除（${dels.length}）</h2>`;
+    for (const d of dels) body += `<div class="li">${escHtml(d.title)} <span class="pill">${(d.at||'').slice(0,10)}</span></div>`;
+  }
+
+  wsDownload(`${p.name}-交付包-${wsStamp()}.html`,
+    wsHtmlDoc(`${p.name}｜交付包`, `自上次交付以来的新增与修改`, body));
+
+  if (mark) {
+    const now = new Date().toISOString();
+    for (const t of wsDelivTasks(p)) {
+      const snap = {}; (t.fields||[]).forEach(f => snap[f.key] = f.value || '');
+      t.exported = snap; t.exportedAt = now;
+    }
+    p.deletedSinceExport = [];
+    p.lastExportAt = now;
+    wsScheduleSave(); wsRender();
+  }
+}
+
+function wsExportFull() {
+  const p = wsProj();
+  const ST = { todo:'未写', draft:'草稿', done:'已定稿' };
+  const dts = wsDelivTasks(p);
+  let body = `<div class="legend">所有已写的交付内容的完整快照，不做增量比对。</div>`;
+  const groups = [...new Set(dts.map(t => t.group))];
+  for (const g of groups) {
+    const gt = dts.filter(x => x.group === g && (x.fields||[]).some(f => f.value));
+    if (!gt.length) continue;
+    body += `<h2>${escHtml(g)}</h2>`;
+    let sub = null;
+    for (const t of gt) {
+      if (t.sub !== sub) { body += `<h3>${escHtml(t.sub||'')}</h3>`; sub = t.sub; }
+      body += `<div class="item"><div class="t">${escHtml(t.title)}<span class="pill ${t.status}">${ST[t.status]}</span></div>`;
+      for (const f of (t.fields||[])) if (f.value)
+        body += `<div class="f"><div class="lb">${escHtml(f.label)}</div><div class="vl">${escHtml(f.value)}</div></div>`;
+      body += `</div>`;
+    }
+  }
+  wsDownload(`${p.name}-全量文案-${wsStamp()}.html`, wsHtmlDoc(`${p.name}｜全量文案`, '所有已写的交付内容', body));
+}
+
+// ============================================================
+// SYNC STATUS
+// ============================================================
+function setSyncStatus(type, text) {
+  const el = document.getElementById('sync-status');
+  const textEl = document.getElementById('sync-text');
+  el.className = type;
+  textEl.textContent = text;
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function setCategory(cat) {
+  state.category = cat;
+  const info = CATEGORIES[cat];
+  if (info.subs) {
+    state.subtype = Object.keys(info.subs)[0];
+  } else {
+    state.subtype = null;
+  }
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`cat-${cat}`).classList.add('active');
+  renderSubNav();
+  renderCards();
+}
+
+function setSubtype(sub) {
+  state.subtype = sub;
+  document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`sub-${sub}`).classList.add('active');
+  renderCards();
+}
+
+function renderSubNav() {
+  const nav = document.getElementById('sub-nav');
+  const info = CATEGORIES[state.category];
+  if (state.category === 'music') {
+    // 音乐类：创作区（原三阶段看板）/ 歌词库 两个子页签
+    nav.style.display = 'flex';
+    nav.innerHTML = `
+      <button class="sub-tab${state.musicView !== 'lyrics' ? ' active' : ''}" onclick="setMusicView('stages')">${T('🎵 创作区','🎵 Works')}</button>
+      <button class="sub-tab${state.musicView === 'lyrics' ? ' active' : ''}" onclick="setMusicView('lyrics')">${T('🎼 歌词库','🎼 Lyrics')}</button>`;
+    return;
+  }
+  if (!info.subs) {
+    nav.innerHTML = '';
+    nav.style.display = 'none';
+    return;
+  }
+  nav.style.display = 'flex';
+  nav.innerHTML = Object.keys(info.subs).map(key =>
+    `<button class="sub-tab${key === state.subtype ? ' active' : ''}"
+      id="sub-${key}" onclick="setSubtype('${key}')">${subLabel(state.category, key)}</button>`
+  ).join('');
+}
+
+// ============================================================
+// RENDER CARDS
+// ============================================================
+function getStageData(stage) {
+  const cat = state.category;
+  const sub = state.subtype;
+  if (sub) return state.data[cat][sub][stage];
+  return state.data[cat][stage];
+}
+
+function renderCards() {
+  const lyricsMode = state.category === 'music' && state.musicView === 'lyrics';
+  document.getElementById('stage-area').style.display = lyricsMode ? 'none' : '';
+  document.getElementById('lyrics-area').style.display = lyricsMode ? '' : 'none';
+  if (lyricsMode) { renderLyrics(); return; }
+  for (const stage of STAGES) {
+    const items = getStageData(stage);
+    const body = document.getElementById(`body-${stage}`);
+    const count = document.getElementById(`count-${stage}`);
+    count.textContent = items.length;
+
+    const addBtn = `<button class="add-btn" onclick="openAdd('${stage}')">${T('＋ 新增','＋ New ')}${stageShort(stage)}</button>`;
+
+    if (!items.length) {
+      body.innerHTML = addBtn + `<div class="empty-state">${T('暂无内容<br>点击上方按钮添加','No items yet<br>Click the button above to add')}</div>`;
+      continue;
+    }
+
+    const cards = items.map(item => renderCard(item, stage)).join('');
+    body.innerHTML = addBtn + cards;
+  }
+  loadCardImages();
+}
+
+function renderAll() {
+  renderSubNav();
+  renderCards();
+}
+
+function renderCard(item, stage) {
+  const tagsHtml = (item.tags || []).map(t => `<span class="tag">${escHtml(t)}</span>`).join('');
+  const date = item.updated_at ? new Date(item.updated_at).toLocaleDateString('zh-CN') : '';
+  
+  const prevStage = STAGES[STAGES.indexOf(stage) - 1];
+  const nextStage = STAGES[STAGES.indexOf(stage) + 1];
+  
+  const promoteBtn = nextStage
+    ? `<button class="card-action promote" onclick="moveItem('${item.id}','${stage}','${nextStage}')">→ ${stageShort(nextStage)}</button>`
+    : '';
+  const demoteBtn = prevStage
+    ? `<button class="card-action demote" onclick="moveItem('${item.id}','${stage}','${prevStage}')">${T('← 退回','← Back')}</button>`
+    : '';
+
+  const imgHtml = item.image
+    ? `<div class="card-img-wrap"><img class="card-img" data-img-path="${escHtml(item.image)}" src="" alt="${T('图片','image')}"></div>`
+    : '';
+
+  const selectable = state.selectMode ? ' selectable' : '';
+  const selected = state.selectMode && state.selectedItems.has(item.id + '|' + stage) ? ' selected' : '';
+  const clickHandler = state.selectMode
+    ? `onclick="toggleSelectItem('${item.id}','${stage}',this)"`
+    : '';
+  const checkbox = state.selectMode
+    ? `<span class="card-checkbox"></span>`
+    : '';
+
+  return `
+  <div class="card${selectable}${selected}" id="card-${item.id}" ${clickHandler}>
+    ${imgHtml}
+    <div class="card-title-row">${checkbox}<span class="card-title">${escHtml(item.title || T('无标题','Untitled'))}</span>${item.public ? `<span class="public-badge">${T('公开','Public')}</span>` : ''}</div>
+    ${item.content ? `<div class="card-content" id="cc-${item.id}">${escHtml(item.content)}</div>` : ''}
+    ${tagsHtml ? `<div class="card-tags">${tagsHtml}</div>` : ''}
+    ${(item.files && item.files.length) ? `<div class="card-files">${item.files.map(f =>
+      `<span class="card-file-chip">${fileIcon(f.name)} ${escHtml(f.name)}</span>`).join('')}</div>` : ''}
+    <div class="card-footer">
+      <span class="card-date">${date}</span>
+      <button class="card-action detail-btn" onclick="openDetail('${item.id}','${stage}');event.stopPropagation()">${T('详情','Details')}</button>
+      <button class="card-action" onclick="openEdit('${item.id}','${stage}');event.stopPropagation()">${T('编辑','Edit')}</button>
+      ${demoteBtn}
+      ${promoteBtn}
+      <button class="card-action danger" onclick="confirmDelete('${item.id}','${stage}');event.stopPropagation()">${T('删除','Delete')}</button>
+    </div>
+  </div>`;
+}
+
+function openDetail(id, stage) {
+  // find item across all accessible stages
+  let item = null;
+  for (const s of STAGES) {
+    const arr = getStageDataOf(state.category, state.subtype, s);
+    const found = arr.find(i => i.id === id);
+    if (found) { item = found; stage = s; break; }
+  }
+  if (!item) return;
+
+  const cat = state.category;
+  const sub = state.subtype;
+  const catInfo = CATEGORIES[cat];
+  const catLab = catLabel(cat);
+  const subLab = sub && catInfo.subs ? subLabel(cat, sub) : '';
+  const stageLabel = stageName(stage);
+
+  const tagsHtml = (item.tags || []).map(t => `<span class="tag">${escHtml(t)}</span>`).join('');
+  const locale = lang === 'en' ? 'en-US' : 'zh-CN';
+  const created = item.created_at ? new Date(item.created_at).toLocaleString(locale) : '';
+  const updated = item.updated_at ? new Date(item.updated_at).toLocaleString(locale) : '';
+
+  const prevStage = STAGES[STAGES.indexOf(stage) - 1];
+  const nextStage = STAGES[STAGES.indexOf(stage) + 1];
+  const promoteBtn = nextStage
+    ? `<button class="btn btn-secondary" onclick="moveItem('${item.id}','${stage}','${nextStage}');closeAllModals()">${T('→ 移至','→ Move to ')}${stageName(nextStage)}</button>` : '';
+  const demoteBtn = prevStage
+    ? `<button class="btn btn-secondary" onclick="moveItem('${item.id}','${stage}','${prevStage}');closeAllModals()">${T('← 退回','← Back to ')}${stageName(prevStage)}</button>` : '';
+
+  const imgSection = item.image
+    ? `<div class="detail-img-wrap"><img class="detail-img" id="detail-img-el" src="" alt="${T('图片','image')}"></div>` : '';
+
+  document.getElementById('modal-root').innerHTML = `
+  <div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal detail-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div style="flex:1">
+          <div class="detail-breadcrumb">${catLab}${subLab ? ' › ' + subLab : ''} › ${stageLabel}</div>
+          <div class="modal-title">${escHtml(item.title || T('无标题','Untitled'))}</div>
+        </div>
+        <button class="modal-close" onclick="closeAllModals()">×</button>
+      </div>
+      <div class="detail-body">
+        ${imgSection}
+        ${item.content ? `<div class="detail-content">${escHtml(item.content)}</div>` : `<div class="detail-empty">${T('暂无内容','No content')}</div>`}
+        ${tagsHtml ? `<div class="card-tags" style="margin-top:16px">${tagsHtml}</div>` : ''}
+        ${(item.files && item.files.length) ? `
+          <div style="margin-top:16px">
+            <div class="dest-cat-label" style="margin-bottom:8px">${T('文件附件','Attachments')}</div>
+            ${item.files.map((f,i) => `
+              <div class="detail-file-item">
+                <span class="file-icon">${fileIcon(f.name)}</span>
+                <span class="file-name">${escHtml(f.name)}</span>
+                <span class="file-size">${fileSizeStr(f.size)}</span>
+                <button class="btn-download" onclick="downloadFile('${escHtml(f.path)}','${escHtml(f.name)}',this)">${T('⬇ 下载','⬇ Download')}</button>
+              </div>`).join('')}
+          </div>` : ''}
+        <div class="detail-meta">
+          ${created ? `<span>${T('创建：','Created: ')}${created}</span>` : ''}
+          ${updated ? `<span>${T('更新：','Updated: ')}${updated}</span>` : ''}
+        </div>
+      </div>
+      <div class="modal-footer">
+        ${demoteBtn}
+        ${promoteBtn}
+        <span style="flex:1"></span>
+        <button class="public-toggle-btn${item.public ? ' is-public' : ''}" id="pub-toggle-btn"
+          onclick="togglePublicItem('${item.id}','${stage}',this)">
+          ${item.public ? T('🌐 已公开','🌐 Public') : T('○ 设为公开','○ Make public')}
+        </button>
+        <button class="btn btn-secondary" onclick="closeAllModals();openEdit('${item.id}','${stage}')">${T('编辑','Edit')}</button>
+        <button class="btn btn-secondary" onclick="closeAllModals()">${T('关闭','Close')}</button>
+      </div>
+    </div>
+  </div>`;
+
+  // load image async
+  if (item.image) {
+    const _imgPath = item.image;
+    fetchImageResult(_imgPath).then(({ dataUrl, error }) => {
+      const el = document.getElementById('detail-img-el');
+      if (!el) return;
+      if (dataUrl) {
+        imageCache.set(_imgPath, dataUrl);
+        el.src = dataUrl;
+      } else {
+        el.parentElement.innerHTML =
+          '<div style="padding:12px;background:var(--bg3);border-radius:6px">' +
+          '<div style="color:var(--accent2);font-size:0.85rem;margin-bottom:6px">' + T('⚠ 图片加载失败','⚠ Image failed to load') + '</div>' +
+          '<div style="color:var(--text3);font-size:0.75rem;font-family:Courier Prime,monospace;margin-bottom:10px;word-break:break-all">' + escHtml(error || '') + '</div>' +
+          '<button class="btn btn-secondary" style="font-size:0.82rem;padding:4px 12px" onclick="retryDetailImage(' + "'" + escHtml(_imgPath) + "'" + ')">' + T('↻ 重试','↻ Retry') + '</button>' +
+          '</div>';
+      }
+    });
+  }
+}
+
+function retryDetailImage(path) {
+  imageCache.delete(path);
+  const wrap = document.querySelector('.detail-img-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<img class="detail-img" id="detail-img-el" src="" alt="' + T('图片','image') + '">';
+  fetchImageResult(path).then(({ dataUrl, error }) => {
+    const el = document.getElementById('detail-img-el');
+    if (!el) return;
+    if (dataUrl) {
+      imageCache.set(path, dataUrl);
+      el.src = dataUrl;
+    } else {
+      wrap.innerHTML =
+        '<div style="padding:12px;background:var(--bg3);border-radius:6px">' +
+        '<div style="color:var(--accent2);font-size:0.85rem;margin-bottom:6px">' + T('⚠ 仍然失败','⚠ Still failing') + '</div>' +
+        '<div style="color:var(--text3);font-size:0.75rem;font-family:Courier Prime,monospace;word-break:break-all">' + escHtml(error || '') + '</div>' +
+        '</div>';
+    }
+  });
+}
+
+function getStageDataOf(cat, sub, stage) {
+  if (sub) return state.data[cat][sub][stage];
+  return state.data[cat][stage];
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ============================================================
+// ADD / EDIT / DELETE
+// ============================================================
+function uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+function openAdd(stage) {
+  showItemModal(null, stage);
+}
+
+function openEdit(id, stage) {
+  const items = getStageData(stage);
+  const item = items.find(i => i.id === id);
+  if (item) showItemModal(item, stage);
+}
+
+function showItemModal(item, stage) {
+  const isEdit = !!item;
+  modalImagePath = isEdit ? (item.image || null) : null;
+  modalFiles = isEdit ? JSON.parse(JSON.stringify(item.files || [])) : [];
+  const modalHtml = `
+  <div class="modal-overlay" onclick="closeModal(event)" id="item-modal-overlay">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">${isEdit ? T('编辑条目','Edit item') : T('新增条目','New item')}</div>
+        <button class="modal-close" onclick="closeAllModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">${T('标题 *','Title *')}</label>
+          <input class="form-input" id="item-title" placeholder="${T('给这个想法起个名字','Give this idea a name')}" value="${isEdit ? escHtml(item.title||'') : ''}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">${T('内容 / 笔记','Content / notes')}</label>
+          <textarea class="form-textarea" id="item-content" placeholder="${T('详细描述你的想法、灵感、情节、旋律...','Describe your idea, inspiration, plot, melody...')}">${isEdit ? escHtml(item.content||'') : ''}</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">${T('标签（逗号分隔）','Tags (comma-separated)')}</label>
+          <input class="form-input" id="item-tags" placeholder="${T('例：悬疑, 反转, 校园','e.g. suspense, twist, campus')}" value="${isEdit ? escHtml((item.tags||[]).join(', ')) : ''}">
+          <span class="form-hint">${T('多个标签用中文或英文逗号分隔','Separate tags with commas')}</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">${T('图片','Image')}</label>
+          <div class="img-picker">
+            <div class="img-picker-tabs">
+              <button class="img-picker-tab active" id="img-tab-btn-current" onclick="switchImgTab('current')">${T('当前图片','Current')}</button>
+              <button class="img-picker-tab" id="img-tab-btn-upload" onclick="switchImgTab('upload')">${T('上传新图','Upload')}</button>
+              <button class="img-picker-tab" id="img-tab-btn-repo" onclick="switchImgTab('repo')">${T('从仓库选取','From repo')}</button>
+            </div>
+            <div class="img-picker-body">
+              <div class="img-tab-panel" id="img-panel-current">
+                <div id="modal-img-preview">${isEdit && item.image
+                  ? `<div class="img-preview-wrap"><img class="img-preview" id="modal-edit-thumb" src="" alt="preview"><div><div class="img-preview-path">${escHtml(item.image)}</div><button class="btn-clear-img" onclick="clearModalImage()">&#x2715; ${T('移除图片','Remove image')}</button></div></div>`
+                  : `<span style="color:var(--text3);font-size:0.85rem">${T('未选择图片','No image selected')}</span>`
+                }</div>
+              </div>
+              <div class="img-tab-panel" id="img-panel-upload" style="display:none">
+                <label class="upload-label">
+                  📎 ${T('选择图片文件','Choose image file')}
+                  <input class="upload-input" type="file" accept="image/*" onchange="handleUploadFile(this)">
+                </label>
+                <div id="upload-progress" class="upload-progress"></div>
+              </div>
+              <div class="img-tab-panel" id="img-panel-repo" style="display:none">
+                <div class="img-loading">${T('点击"从仓库选取"标签加载','Click “From repo” tab to load')}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">${T('文件附件（PDF / DOCX）','Attachments (PDF / DOCX)')}</label>
+          <div id="modal-file-list"><span style="color:var(--text3);font-size:0.82rem;font-style:italic">${T('暂无附件','No attachments')}</span></div>
+          <div class="file-upload-area" style="margin-top:8px">
+            <label class="upload-label">
+              📎 ${T('上传文件','Upload file')}
+              <input class="upload-input" type="file" accept=".pdf,.docx,.doc" multiple onchange="uploadFileAttachment(this)">
+            </label>
+            <span id="file-upload-progress" class="file-upload-progress"></span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">${T('阶段','Stage')}</label>
+          <div class="stage-select">
+            ${STAGES.map(s => {
+              const cls = `stage-opt${s === stage ? ` active-${s}` : ''}`;
+              return `<button class="${cls}" onclick="selectStage(this,'${s}')" data-stage="${s}">${stageName(s)}</button>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAllModals()">${T('取消','Cancel')}</button>
+        <button class="btn btn-primary" onclick="saveItem('${isEdit ? item.id : ''}', '${stage}')">
+          ${isEdit ? T('保存修改','Save') : T('添加','Add')}
+        </button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('modal-root').innerHTML = modalHtml;
+  document.getElementById('item-title').focus();
+  renderModalFileList();
+  // Load existing image preview if editing
+  if (isEdit && item && item.image) {
+    fetchImage(item.image).then(dataUrl => {
+      const th = document.getElementById('modal-edit-thumb');
+      if (th && dataUrl) th.src = dataUrl;
+    });
+  }
+}
+
+function selectStage(btn, stage) {
+  document.querySelectorAll('.stage-opt').forEach(b => {
+    b.className = 'stage-opt';
+  });
+  btn.className = `stage-opt active-${stage}`;
+}
+
+function getSelectedStage() {
+  const active = document.querySelector('.stage-opt.active-ideas, .stage-opt.active-wip, .stage-opt.active-done');
+  if (!active) return 'ideas';
+  return active.dataset.stage;
+}
+
+function saveItem(existingId, originalStage) {
+  const title = document.getElementById('item-title').value.trim();
+  if (!title) { 
+    document.getElementById('item-title').style.borderColor = 'var(--accent)';
+    document.getElementById('item-title').focus();
+    return; 
+  }
+
+  const content = document.getElementById('item-content').value.trim();
+  const tagsRaw = document.getElementById('item-tags').value;
+  const tags = tagsRaw.split(/[,，]/).map(t => t.trim()).filter(Boolean);
+  const newStage = getSelectedStage();
+  const now = new Date().toISOString();
+
+  const cat = state.category;
+  const sub = state.subtype;
+
+  if (existingId) {
+    let origItems = sub ? state.data[cat][sub][originalStage] : state.data[cat][originalStage];
+    const idx = origItems.findIndex(i => i.id === existingId);
+    if (idx === -1) { closeAllModals(); return; }
+    const img = modalImagePath !== undefined ? modalImagePath : origItems[idx].image;
+    const updated = { ...origItems[idx], title, content, tags, image: img || undefined, files: modalFiles.length ? modalFiles : undefined, updated_at: now };
+    if (newStage === originalStage) {
+      // Same stage: remove and re-insert at top (most recently edited = first)
+      origItems.splice(idx, 1);
+      origItems.unshift(updated);
+    } else {
+      // Stage changed: move to top of target stage
+      origItems.splice(idx, 1);
+      const destItems = sub ? state.data[cat][sub][newStage] : state.data[cat][newStage];
+      destItems.unshift(updated);
+    }
+  } else {
+    const newItem = { id: uuid(), title, content, tags, image: modalImagePath || undefined, files: modalFiles.length ? modalFiles : undefined, created_at: now, updated_at: now };
+    let destItems = sub ? state.data[cat][sub][newStage] : state.data[cat][newStage];
+    destItems.unshift(newItem);
+  }
+
+  closeAllModals();
+  renderCards();
+  scheduleSave();
+}
+
+function moveItem(id, fromStage, toStage) {
+  const cat = state.category;
+  const sub = state.subtype;
+  const fromItems = sub ? state.data[cat][sub][fromStage] : state.data[cat][fromStage];
+  const idx = fromItems.findIndex(i => i.id === id);
+  if (idx === -1) return;
+  const [item] = fromItems.splice(idx, 1);
+  item.updated_at = new Date().toISOString();
+  const toItems = sub ? state.data[cat][sub][toStage] : state.data[cat][toStage];
+  toItems.unshift(item);
+  renderCards();
+  scheduleSave();
+}
+
+function confirmDelete(id, stage) {
+  const items = getStageData(stage);
+  const item = items.find(i => i.id === id);
+  const title = item ? escHtml(item.title || T('此条目','this item')) : T('此条目','this item');
+  const modalHtml = `
+  <div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal confirm-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">${T('确认删除','Confirm delete')}</div>
+        <button class="modal-close" onclick="closeAllModals()">×</button>
+      </div>
+      <div class="confirm-text">${T(`确定要删除「${title}」吗？此操作不可撤销。`,`Delete “${title}”? This cannot be undone.`)}</div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAllModals()">${T('取消','Cancel')}</button>
+        <button class="btn btn-danger" onclick="deleteItem('${id}','${stage}')">${T('确认删除','Delete')}</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('modal-root').innerHTML = modalHtml;
+}
+
+function deleteItem(id, stage) {
+  const cat = state.category;
+  const sub = state.subtype;
+  if (sub) {
+    state.data[cat][sub][stage] = state.data[cat][sub][stage].filter(i => i.id !== id);
+  } else {
+    state.data[cat][stage] = state.data[cat][stage].filter(i => i.id !== id);
+  }
+  closeAllModals();
+  renderCards();
+  scheduleSave();
+}
+
+// ============================================================
+// LYRICS VAULT（音乐类 · 歌词库：自定义分组 + AI 共性提取）
+// 数据在 state.data.lyrics = { groups:[{id,name,analysis,analyzedAt,analyzedCount}],
+//                              items:[{id,text,song,artist,note,groups:[gid],created_at,updated_at}] }
+// 纯私人收藏：不参与「公开展示」导出（export 只遍历分类×阶段）。
+// ============================================================
+function LY() {
+  if (!state.data.lyrics) state.data.lyrics = { groups: [], items: [] };
+  if (!Array.isArray(state.data.lyrics.groups)) state.data.lyrics.groups = [];
+  if (!Array.isArray(state.data.lyrics.items)) state.data.lyrics.items = [];
+  return state.data.lyrics;
+}
+
+function setMusicView(v) {
+  state.musicView = v;
+  renderSubNav();
+  renderCards();
+}
+
+function lyricGroupsOf(item) {
+  const L = LY();
+  return (item.groups || []).map(gid => L.groups.find(g => g.id === gid)).filter(Boolean);
+}
+
+function renderLyricCard(item) {
+  const chips = lyricGroupsOf(item).map(g => `<span class="lyr-chip">${escHtml(g.name)}</span>`).join('');
+  const src = [item.song, item.artist].filter(Boolean).map(escHtml).join(' · ');
+  return `
+  <div class="lyr-card" id="lyr-${item.id}">
+    <div class="lyr-text">${escHtml(item.text)}</div>
+    ${src ? `<div class="lyr-src">—— ${src}</div>` : ''}
+    ${item.note ? `<div class="lyr-note">${escHtml(item.note)}</div>` : ''}
+    <div class="lyr-foot">
+      <span class="lyr-chips">${chips}</span>
+      <span class="lyr-actions">
+        <button class="card-action" onclick="showLyricModal('${item.id}')">${T('编辑','Edit')}</button>
+        <button class="card-action danger" onclick="confirmDeleteLyric('${item.id}')">${T('删除','Delete')}</button>
+      </span>
+    </div>
+  </div>`;
+}
+
+function renderLyricAnalysisBlock(g, count) {
+  if (!g.analysis) return '';
+  const date = g.analyzedAt ? new Date(g.analyzedAt).toLocaleDateString('zh-CN') : '';
+  const stale = (g.analyzedCount != null && g.analyzedCount !== count)
+    ? ` · <span class="lyr-stale">${T(`分析后内容有变化（当时 ${g.analyzedCount} 条 → 现在 ${count} 条），可重新分析`,`Group changed since analysis (${g.analyzedCount} → ${count}) — consider re-running`)}</span>` : '';
+  return `
+  <div class="lyr-analysis">
+    <div class="lyr-analysis-meta">✨ ${T('AI 共性分析','AI analysis')} · ${date} · ${T(`基于 ${g.analyzedCount ?? '?'} 条`,`based on ${g.analyzedCount ?? '?'} lyrics`)}${stale}</div>
+    <div class="lyr-analysis-body">${escHtml(g.analysis)}</div>
+  </div>`;
+}
+
+function renderLyrics() {
+  const L = LY();
+  const area = document.getElementById('lyrics-area');
+  const cfg = lyricAiCfg();
+
+  // 分组区块：每个自定义分组一块；无归属（或分组已删）的进「未分组」
+  const groupedIds = new Set(L.groups.map(g => g.id));
+  const inGroup = gid => L.items.filter(it => (it.groups || []).includes(gid));
+  const ungrouped = L.items.filter(it => !(it.groups || []).some(gid => groupedIds.has(gid)));
+
+  const groupBlock = (g) => {
+    const items = inGroup(g.id);
+    const aiBtn = `<button class="card-action lyr-ai-btn" id="lyrai-${g.id}" onclick="analyzeLyricGroup('${g.id}')" ${items.length ? '' : 'disabled'}>✨ ${g.analysis ? T('重新分析','Re-analyze') : T('提取共性','Analyze')}</button>`;
+    return `
+    <div class="lyr-group">
+      <div class="lyr-group-head">
+        <span class="lyr-group-name">${escHtml(g.name)}</span>
+        <span class="lyr-group-count">${items.length}</span>
+        <span class="lyr-group-tools">
+          ${aiBtn}
+          <button class="card-action" onclick="renameLyricGroup('${g.id}')">${T('改名','Rename')}</button>
+          <button class="card-action danger" onclick="confirmDeleteLyricGroup('${g.id}')">✕</button>
+        </span>
+      </div>
+      <div class="lyr-ai-err" id="lyrerr-${g.id}"></div>
+      ${renderLyricAnalysisBlock(g, items.length)}
+      ${items.length
+        ? `<div class="lyr-grid">${items.map(renderLyricCard).join('')}</div>`
+        : `<div class="lyr-empty">${T('这个分组还没有歌词——收藏歌词时勾选它即可','No lyrics here yet — tick this group when saving a lyric')}</div>`}
+    </div>`;
+  };
+
+  area.innerHTML = `
+  <div class="lyr-toolbar">
+    <button class="btn btn-primary" onclick="showLyricModal()">＋ ${T('收藏歌词','Add lyric')}</button>
+    <button class="btn btn-secondary" onclick="renameLyricGroup()">＋ ${T('新建分组','New group')}</button>
+    <span class="lyr-summary">${T(`${L.items.length} 条歌词 · ${L.groups.length} 个分组`,`${L.items.length} lyrics · ${L.groups.length} groups`)}</span>
+    <span style="flex:1"></span>
+    <button class="btn btn-secondary" onclick="toggleLyricAiRow()">🔑 ${T('AI 设置','AI key')}</button>
+  </div>
+  <div class="lyr-ai-row" id="lyr-ai-row" style="display:none">
+    <input class="form-input" type="password" id="lyr-ai-key" placeholder="Anthropic API Key（sk-ant-…）${cfg.key ? T('（已保存，留空不改）','(saved — leave blank to keep)') : ''}" autocomplete="off">
+    <select class="form-input" id="lyr-ai-model" style="max-width:190px">
+      <option value="claude-opus-4-8" ${cfg.model !== 'claude-sonnet-5' ? 'selected' : ''}>Opus 4.8${T('（推荐）',' (best)')}</option>
+      <option value="claude-sonnet-5" ${cfg.model === 'claude-sonnet-5' ? 'selected' : ''}>Sonnet 5${T('（更省）',' (cheaper)')}</option>
+    </select>
+    <button class="btn btn-primary" onclick="saveLyricAiCfg()">${T('保存','Save')}</button>
+    <span class="lyr-ai-hint">${cfg.key ? T('✓ AI 已就绪 · Key 只存本机浏览器','✓ Ready · key stays in this browser') : T('Key 只存本机浏览器，绝不进仓库','Key stays in this browser only')}</span>
+  </div>
+  ${L.groups.map(groupBlock).join('')}
+  ${ungrouped.length ? `
+    <div class="lyr-group lyr-group-none">
+      <div class="lyr-group-head"><span class="lyr-group-name">${T('未分组','Ungrouped')}</span><span class="lyr-group-count">${ungrouped.length}</span></div>
+      <div class="lyr-grid">${ungrouped.map(renderLyricCard).join('')}</div>
+    </div>` : ''}
+  ${(!L.groups.length && !L.items.length) ? `
+    <div class="lyr-welcome">
+      <div class="lyr-welcome-icon">🎼</div>
+      <div>${T('把打动你的歌词收进来，按自己的方式分组——','Collect the lyrics that move you, group them your way —')}</div>
+      <div>${T('然后让 AI 告诉你：这一组歌词的共同气质是什么。','then let AI tell you what they share.')}</div>
+    </div>` : ''}`;
+}
+
+// ---- 歌词增改删 ----
+function showLyricModal(existingId) {
+  const L = LY();
+  const item = existingId ? L.items.find(i => i.id === existingId) : null;
+  const checked = new Set(item ? (item.groups || []) : []);
+  const groupBoxes = () => L.groups.map(g => `
+    <label class="lyr-gcheck"><input type="checkbox" data-lyrg="${g.id}" ${checked.has(g.id) ? 'checked' : ''}> ${escHtml(g.name)}</label>`).join('')
+    || `<span class="lyr-ai-hint">${T('还没有分组，可在下方直接新建','No groups yet — create one below')}</span>`;
+  const modalHtml = `
+  <div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">${item ? T('✎ 编辑歌词','✎ Edit lyric') : T('🎼 收藏歌词','🎼 Add lyric')}</div>
+        <button class="modal-close" onclick="closeAllModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">${T('歌词','Lyric')} *</label>
+          <textarea class="form-textarea" id="lyr-f-text" rows="5" placeholder="${T('打动你的那几句…（保留换行）','The lines that move you… (line breaks kept)')}">${item ? escHtml(item.text) : ''}</textarea>
+        </div>
+        <div class="lyr-form-2col">
+          <div class="form-group">
+            <label class="form-label">${T('歌名（选填）','Song (optional)')}</label>
+            <input class="form-input" id="lyr-f-song" value="${item ? escHtml(item.song || '') : ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">${T('歌手（选填）','Artist (optional)')}</label>
+            <input class="form-input" id="lyr-f-artist" value="${item ? escHtml(item.artist || '') : ''}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">${T('为什么喜欢（选填）','Why you like it (optional)')}</label>
+          <input class="form-input" id="lyr-f-note" value="${item ? escHtml(item.note || '') : ''}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">${T('分组（可多选）','Groups (multi-select)')}</label>
+          <div class="lyr-gchecks" id="lyr-f-groups">${groupBoxes()}</div>
+          <div class="lyr-newgroup-row">
+            <input class="form-input" id="lyr-f-newgroup" placeholder="${T('＋ 新分组名，回车或点添加','+ New group name')}">
+            <button class="btn btn-secondary" onclick="addGroupInsideModal()">${T('添加','Add')}</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAllModals()">${T('取消','Cancel')}</button>
+        <button class="btn btn-primary" onclick="saveLyric(${item ? `'${item.id}'` : 'null'})">${T('保存','Save')}</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('modal-root').innerHTML = modalHtml;
+  const ng = document.getElementById('lyr-f-newgroup');
+  ng.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addGroupInsideModal(); } });
+  if (!item) document.getElementById('lyr-f-text').focus();
+}
+
+function addGroupInsideModal() {
+  const inp = document.getElementById('lyr-f-newgroup');
+  const name = (inp.value || '').trim();
+  if (!name) return;
+  const L = LY();
+  if (L.groups.some(g => g.name === name)) { inp.value = ''; return; }
+  const g = { id: uuid(), name, analysis: '', analyzedAt: '', analyzedCount: null };
+  L.groups.push(g);
+  scheduleSave();
+  // 只刷新复选框区，保留已填内容与已勾选项；新分组自动勾上
+  const box = document.getElementById('lyr-f-groups');
+  const kept = new Set([...box.querySelectorAll('input[data-lyrg]:checked')].map(el => el.dataset.lyrg));
+  kept.add(g.id);
+  box.innerHTML = L.groups.map(gr => `
+    <label class="lyr-gcheck"><input type="checkbox" data-lyrg="${gr.id}" ${kept.has(gr.id) ? 'checked' : ''}> ${escHtml(gr.name)}</label>`).join('');
+  inp.value = '';
+}
+
+function saveLyric(existingId) {
+  const text = (document.getElementById('lyr-f-text').value || '').trim();
+  if (!text) { document.getElementById('lyr-f-text').focus(); return; }
+  const groups = [...document.querySelectorAll('#lyr-f-groups input[data-lyrg]:checked')].map(el => el.dataset.lyrg);
+  const fields = {
+    text,
+    song: (document.getElementById('lyr-f-song').value || '').trim(),
+    artist: (document.getElementById('lyr-f-artist').value || '').trim(),
+    note: (document.getElementById('lyr-f-note').value || '').trim(),
+    groups,
+    updated_at: new Date().toISOString()
+  };
+  const L = LY();
+  if (existingId) {
+    const it = L.items.find(i => i.id === existingId);
+    if (it) Object.assign(it, fields);
+  } else {
+    L.items.unshift(Object.assign({ id: uuid(), created_at: new Date().toISOString() }, fields));
+  }
+  closeAllModals();
+  renderCards();
+  scheduleSave();
+}
+
+function confirmDeleteLyric(id) {
+  const it = LY().items.find(i => i.id === id);
+  const brief = it ? escHtml((it.text || '').slice(0, 24)) + ((it.text || '').length > 24 ? '…' : '') : '';
+  document.getElementById('modal-root').innerHTML = `
+  <div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal confirm-modal" onclick="event.stopPropagation()">
+      <div class="modal-header"><div class="modal-title">${T('确认删除','Confirm delete')}</div><button class="modal-close" onclick="closeAllModals()">×</button></div>
+      <div class="confirm-text">${T(`删除这条歌词「${brief}」？此操作不可撤销。`,`Delete lyric “${brief}”? This cannot be undone.`)}</div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAllModals()">${T('取消','Cancel')}</button>
+        <button class="btn btn-danger" onclick="deleteLyric('${id}')">${T('确认删除','Delete')}</button>
+      </div>
+    </div>
+  </div>`;
+}
+function deleteLyric(id) {
+  const L = LY();
+  L.items = L.items.filter(i => i.id !== id);
+  closeAllModals();
+  renderCards();
+  scheduleSave();
+}
+
+// ---- 分组管理 ----
+function renameLyricGroup(id) {
+  const g = id ? LY().groups.find(x => x.id === id) : null;
+  document.getElementById('modal-root').innerHTML = `
+  <div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal confirm-modal" onclick="event.stopPropagation()">
+      <div class="modal-header"><div class="modal-title">${g ? T('✎ 重命名分组','✎ Rename group') : T('＋ 新建分组','＋ New group')}</div><button class="modal-close" onclick="closeAllModals()">×</button></div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">${T('分组名（如：夏天的意象 / 叙事反转 / 副歌钩子）','Group name (e.g. summer imagery / narrative twists)')}</label>
+          <input class="form-input" id="lyr-g-name" value="${g ? escHtml(g.name) : ''}">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAllModals()">${T('取消','Cancel')}</button>
+        <button class="btn btn-primary" onclick="saveLyricGroup(${g ? `'${g.id}'` : 'null'})">${T('保存','Save')}</button>
+      </div>
+    </div>
+  </div>`;
+  const inp = document.getElementById('lyr-g-name');
+  inp.focus();
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') saveLyricGroup(g ? g.id : null); });
+}
+function saveLyricGroup(id) {
+  const name = (document.getElementById('lyr-g-name').value || '').trim();
+  if (!name) return;
+  const L = LY();
+  if (id) {
+    const g = L.groups.find(x => x.id === id);
+    if (g) g.name = name;
+  } else {
+    L.groups.push({ id: uuid(), name, analysis: '', analyzedAt: '', analyzedCount: null });
+  }
+  closeAllModals();
+  renderCards();
+  scheduleSave();
+}
+function confirmDeleteLyricGroup(id) {
+  const g = LY().groups.find(x => x.id === id);
+  if (!g) return;
+  const n = LY().items.filter(it => (it.groups || []).includes(id)).length;
+  document.getElementById('modal-root').innerHTML = `
+  <div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal confirm-modal" onclick="event.stopPropagation()">
+      <div class="modal-header"><div class="modal-title">${T('删除分组','Delete group')}</div><button class="modal-close" onclick="closeAllModals()">×</button></div>
+      <div class="confirm-text">${T(`删除分组「${escHtml(g.name)}」？组里的 ${n} 条歌词不会被删除（会回到未分组或留在其它分组），但该组的 AI 分析会一并删除。`,`Delete group “${escHtml(g.name)}”? Its ${n} lyrics are kept (moved to Ungrouped or stay in other groups); the group's AI analysis is removed.`)}</div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAllModals()">${T('取消','Cancel')}</button>
+        <button class="btn btn-danger" onclick="deleteLyricGroup('${id}')">${T('确认删除','Delete')}</button>
+      </div>
+    </div>
+  </div>`;
+}
+function deleteLyricGroup(id) {
+  const L = LY();
+  L.groups = L.groups.filter(g => g.id !== id);
+  L.items.forEach(it => { if (it.groups) it.groups = it.groups.filter(gid => gid !== id); });
+  closeAllModals();
+  renderCards();
+  scheduleSave();
+}
+
+// ---- AI 共性提取（Claude 直连；Key 只存本机 localStorage，绝不进仓库） ----
+function lyricAiCfg() {
+  try { return Object.assign({ key: '', model: 'claude-opus-4-8' }, JSON.parse(localStorage.getItem('writing_ai_cfg') || '{}')); }
+  catch (e) { return { key: '', model: 'claude-opus-4-8' }; }
+}
+function saveLyricAiCfg() {
+  const cur = lyricAiCfg();
+  const key = (document.getElementById('lyr-ai-key').value || '').trim() || cur.key;
+  const model = document.getElementById('lyr-ai-model').value;
+  try { localStorage.setItem('writing_ai_cfg', JSON.stringify({ key, model })); } catch (e) {}
+  renderLyrics();
+  const row = document.getElementById('lyr-ai-row');
+  if (row) row.style.display = '';
+}
+function toggleLyricAiRow() {
+  const row = document.getElementById('lyr-ai-row');
+  row.style.display = row.style.display === 'none' ? '' : 'none';
+}
+
+async function analyzeLyricGroup(groupId) {
+  const L = LY();
+  const g = L.groups.find(x => x.id === groupId);
+  if (!g) return;
+  const items = L.items.filter(it => (it.groups || []).includes(groupId));
+  if (!items.length) return;
+  const cfg = lyricAiCfg();
+  const errEl = document.getElementById(`lyrerr-${groupId}`);
+  if (!cfg.key) {
+    const row = document.getElementById('lyr-ai-row');
+    if (row) { row.style.display = ''; document.getElementById('lyr-ai-key').focus(); }
+    if (errEl) errEl.textContent = T('请先在右上「🔑 AI 设置」里保存 Anthropic API Key','Save your Anthropic API key first (🔑 AI key, top right)');
+    return;
+  }
+  const btn = document.getElementById(`lyrai-${groupId}`);
+  const oldLabel = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = T('✨ 分析中…','✨ Analyzing…'); }
+  if (errEl) errEl.textContent = '';
+
+  const SYSTEM = '你是歌词鉴赏与创作分析助手。用户给你一组 TA 收藏的歌词片段（同属一个自定义分组），请提炼这组歌词的共性与特点。要求：\n' +
+    '1. 用简体中文，具体、不空泛；结合歌词原句举例（引用用「」）。\n' +
+    '2. 按以下小节输出，每节 1-4 行，小节标题用【】：【主题与情感】【意象与画面】【语言与修辞】【节奏与结构】【共同的味道】（一两句话概括这组歌词为什么会被放进同一组）【可借鉴的写法】（给写歌词的人 2-3 条具体启发）。\n' +
+    '3. 某一节若确实没有共性，写明"各异"并简述差异。直接输出正文，不要任何前后缀。';
+  const userText = `分组名：「${g.name}」\n\n共 ${items.length} 条歌词：\n\n` + items.map((it, i) => {
+    const src = [it.song, it.artist].filter(Boolean).join(' · ');
+    return `【${i + 1}】${src ? `（${src}）` : ''}\n${it.text}${it.note ? `\n（收藏理由：${it.note}）` : ''}`;
+  }).join('\n\n');
+
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': cfg.key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: cfg.model || 'claude-opus-4-8',
+        max_tokens: 2500,
+        system: SYSTEM,
+        messages: [{ role: 'user', content: userText }]
+      })
+    });
+    if (r.status === 401) throw new Error(T('API Key 无效或已过期 (401)','Invalid API key (401)'));
+    if (r.status === 429) throw new Error(T('触发频率限制 (429)，稍后再试','Rate limited (429) — try again later'));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    if (j.stop_reason === 'refusal') throw new Error(T('模型拒绝了该请求','The model refused'));
+    const tb = (j.content || []).find(b => b.type === 'text');
+    if (!tb || !tb.text.trim()) throw new Error(T('未返回内容','Empty response'));
+    g.analysis = tb.text.trim();
+    g.analyzedAt = new Date().toISOString();
+    g.analyzedCount = items.length;
+    renderCards();
+    scheduleSave();
+  } catch (e) {
+    const el = document.getElementById(`lyrerr-${groupId}`);
+    if (el) el.textContent = T('分析失败：','Analysis failed: ') + e.message;
+    if (btn) { btn.disabled = false; btn.textContent = oldLabel; }
+  }
+}
+
+// ============================================================
+// SETTINGS MODAL
+// ============================================================
+function showSettings() {
+  const s = state.settings;
+  const modalHtml = `
+  <div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">${T('⚙ 设置 GitHub 同步','⚙ GitHub Sync Settings')}</div>
+        <button class="modal-close" onclick="closeAllModals()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-warning">
+          ${T('⚠ 请使用 GitHub Fine-Grained Personal Access Token。','⚠ Use a GitHub Fine-Grained Personal Access Token.')}<br>
+          ${T('权限要求：','Permission: ')}<strong>Contents: Read &amp; Write</strong>${T('（仅针对私有数据仓库）。',' (for your private data repo only).')}<br>
+          ${T('Token 存储在本地 localStorage，不会上传。','The token is stored in local localStorage, never uploaded.')}
+        </div>
+        <div class="form-group">
+          <label class="form-label">GitHub Token</label>
+          <input class="form-input" type="password" id="cfg-token"
+            placeholder="github_pat_xxxx..." value="${escHtml(s.token||'')}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">${T('私有仓库 Owner','Private repo owner')}</label>
+          <input class="form-input" id="cfg-owner" placeholder="your-github-username" value="${escHtml(s.owner||'')}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">${T('私有仓库名称','Private repo name')}</label>
+          <input class="form-input" id="cfg-repo" placeholder="my-private-repo" value="${escHtml(s.repo||'')}">
+          <span class="form-hint">${T('数据将保存为该仓库中的 writing.json 文件','Data is saved as writing.json in that repo')}</span>
+        </div>
+        <div id="settings-msg"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAllModals()">${T('取消','Cancel')}</button>
+        <button class="btn btn-primary" onclick="applySettings()">${T('保存并测试连接','Save & test')}</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('modal-root').innerHTML = modalHtml;
+}
+
+async function applySettings() {
+  const token = document.getElementById('cfg-token').value.trim();
+  const owner = document.getElementById('cfg-owner').value.trim();
+  const repo  = document.getElementById('cfg-repo').value.trim();
+  const msgEl = document.getElementById('settings-msg');
+
+  if (!token || !owner || !repo) {
+    msgEl.innerHTML = `<div class="msg msg-error">${T('请填写所有字段','Please fill in all fields')}</div>`;
+    return;
+  }
+
+  state.settings = { token, owner, repo };
+  saveSettings();
+
+  msgEl.innerHTML = `<div class="msg" style="background:var(--bg3);color:var(--text2)">${T('正在测试连接...','Testing connection...')}</div>`;
+
+  // Test connection
+  try {
+    const r = await fetch(`${GITHUB_API}/repos/${owner}/${repo}`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (r.status === 401) throw new Error(T('Token 无效或已过期','Token invalid or expired'));
+    if (r.status === 404) throw new Error(T('仓库不存在或无访问权限','Repo not found or no access'));
+    if (!r.ok) { const e = await r.json(); throw new Error(e.message || `HTTP ${r.status}`); }
+    msgEl.innerHTML = `<div class="msg msg-success">${T('✓ 连接成功！正在加载数据...','✓ Connected! Loading data...')}</div>`;
+    setTimeout(async () => {
+      closeAllModals();
+      await loadFromGitHub();
+      renderAll();
+    }, 1000);
+  } catch(e) {
+    msgEl.innerHTML = `<div class="msg msg-error">${T('✗ 连接失败：','✗ Connection failed: ')}${escHtml(e.message)}</div>`;
+  }
+}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+function closeModal(event) {
+  if (event.target === event.currentTarget) closeAllModals();
+}
+function closeAllModals() {
+  document.getElementById('modal-root').innerHTML = '';
+}
+
+// Close on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeAllModals();
+});
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  loadSettings();
+  applyStatic();
+  renderSubNav();
+
+  try { state.zone = localStorage.getItem('writing_zone') || 'brain'; } catch(e) {}
+
+  if (hasSettings()) {
+    setSyncStatus('syncing', T('加载中...','Loading...'));
+    await loadFromGitHub();
+    renderCards();
+  } else {
+    setSyncStatus('idle', T('未配置','Not configured'));
+    renderCards();
+  }
+  setZone(state.zone);
+}
+
+init();
+</script>
+</body>
+</html>
