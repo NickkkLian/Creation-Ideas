@@ -1465,6 +1465,7 @@ let state = {
   wsGroup: null, wsFilter: 'all', wsKind: 'kall', wsQuery: '',
   wsOpenTask: null, wsDoc: null, wsDocEditing: false,
   wsSaving: false, wsTimer: null,
+  wsExt: {},            // 外部项目文件：{ 文件名: { sha, snapshot, loading } }
   deliv: null, delivSha: null, delivKeys: null, delivKeysSha: null, delivErr: null
 };
 
@@ -2340,27 +2341,59 @@ function setZone(z) {
 }
 
 // ---------- 数据读写 ----------
+// 取一个 JSON 文件。文件超过 1MB 时 Contents API 不返回 content（encoding:"none"，
+// 工作区体量一过线就整个读不出来，已真实触发过），这种时候改走 blob API（上限 100MB）。
+async function wsFetchFile(file) {
+  const { owner, repo } = state.settings;
+  // 带时间戳绕开 Contents API 缓存——刚在别处写完就来读会拿到旧版本（菜谱那边踩过）
+  const r = await githubGet(`/repos/${owner}/${repo}/contents/${file}?_=${Date.now()}`);
+  if (r.status === 404) return { missing: true };
+  if (!r.ok) return { error: 'HTTP ' + r.status };
+  const json = await r.json();
+  let b64 = json.content;
+  if (!b64) {
+    const br = await githubGet(`/repos/${owner}/${repo}/git/blobs/${json.sha}`);
+    if (!br.ok) return { error: 'blob HTTP ' + br.status };
+    b64 = (await br.json()).content || '';
+  }
+  try { return { data: JSON.parse(b64Decode(b64)), sha: json.sha }; }
+  catch(e) { return { error: 'JSON ' + e.message }; }
+}
+
+// 外部项目：体量大又不常看的项目（归档）单独存一个文件，主文件里只留一个带 external 的壳，
+// 点开才拉正文。主文件因此不会被归档撑大。
+async function wsLoadExt(p) {
+  if (!p || !p.external || p._loaded) return !!(p && p._loaded);
+  const file = p.external;
+  const rec = state.wsExt[file] = state.wsExt[file] || {};
+  if (rec.loading) return rec.loading;   // 渲染和点击可能同时来要，共用一个在途请求
+  setSyncStatus('syncing', T('载入归档...','Loading archive...'));
+  rec.loading = (async () => {
+    const got = await wsFetchFile(file);
+    if (got.error) { setSyncStatus('error', T('归档读取失败: ','Archive load failed: ') + got.error); return false; }
+    const proj = got.missing ? {} : (got.data.project || got.data);
+    p.docs  = Array.isArray(proj.docs)  ? proj.docs  : [];
+    p.tasks = Array.isArray(proj.tasks) ? proj.tasks : [];
+    p._loaded = true;
+    rec.sha = got.missing ? null : got.sha;
+    rec.snapshot = JSON.stringify({ docs: p.docs, tasks: p.tasks });
+    setSyncStatus('idle', T('已同步','Synced'));
+    return true;
+  })();
+  try { return await rec.loading; } finally { rec.loading = null; }
+}
+
 async function wsLoad() {
   if (!hasSettings()) { state.ws = wsDefault(); wsRender(); return false; }
   setSyncStatus('syncing', T('读取工作区...','Loading workspace...'));
   try {
-    const { owner, repo } = state.settings;
-    // 带时间戳绕开 Contents API 缓存——刚在别处写完就来读会拿到旧版本（菜谱那边踩过）
-    const r = await githubGet(`/repos/${owner}/${repo}/contents/${WS_FILE}?_=${Date.now()}`);
-    if (r.status === 404) { state.ws = wsDefault(); state.wsSha = null; setSyncStatus('idle', T('工作区为空','Workspace empty')); wsRender(); return true; }
-    if (!r.ok) { state.ws = wsDefault(); setSyncStatus('error', T('工作区读取失败','Workspace load failed')); wsRender(); return false; }
-    const json = await r.json();
-    // 文件超过 1MB 时 Contents API 不返回 content（encoding:"none"）——
-    // 工作区体量一过线就整个读不出来（已真实触发过）。这种时候改走 blob API（上限 100MB）。
-    let rawB64 = json.content;
-    if (!rawB64) {
-      const br = await githubGet(`/repos/${owner}/${repo}/git/blobs/${json.sha}`);
-      if (!br.ok) { state.ws = wsDefault(); setSyncStatus('error', T('工作区读取失败','Workspace load failed')); wsRender(); return false; }
-      rawB64 = (await br.json()).content || '';
-    }
-    const parsed = JSON.parse(b64Decode(rawB64));
+    const got = await wsFetchFile(WS_FILE);
+    if (got.missing) { state.ws = wsDefault(); state.wsSha = null; setSyncStatus('idle', T('工作区为空','Workspace empty')); wsRender(); return true; }
+    if (got.error) { state.ws = wsDefault(); setSyncStatus('error', T('工作区读取失败','Workspace load failed')); wsRender(); return false; }
+    const parsed = got.data;
     state.ws = { _meta: parsed._meta || wsDefault()._meta, projects: Array.isArray(parsed.projects) ? parsed.projects : [] };
-    state.wsSha = json.sha;
+    state.wsExt = {};
+    state.wsSha = got.sha;
     if (!state.wsProj && state.ws.projects[0]) state.wsProj = state.ws.projects[0].id;
     setSyncStatus('success', T('已同步','Synced'));
     setTimeout(() => setSyncStatus('idle', T('已同步','Synced')), 1800);
@@ -2382,7 +2415,7 @@ async function wsSave(silent, _retrying = false) {
   if (!silent) setSyncStatus('syncing', T('保存中...','Saving...'));
   try {
     state.ws._meta.last_updated = new Date().toISOString();
-    const content = b64Encode(JSON.stringify(state.ws, null, 1));
+    const content = b64Encode(JSON.stringify(wsMainPayload(), null, 1));
     const { owner, repo } = state.settings;
     const body = { message: `Update ${WS_FILE} - ${new Date().toLocaleString('zh-CN')}`, content,
                    ...(state.wsSha ? { sha: state.wsSha } : {}) };
@@ -2401,12 +2434,48 @@ async function wsSave(silent, _retrying = false) {
     }
     state.wsSha = (await r.json()).content.sha;
     state.wsSaving = false;
+    for (const ep of state.ws.projects) if (ep.external && ep._loaded) await wsSaveExt(ep);
     if (!silent) { setSyncStatus('success', T('已保存','Saved')); setTimeout(() => setSyncStatus('idle', T('已同步','Synced')), 1800); }
     wsDelivSync();          // 已放入交付的项跟着刷新——链接不变，内容始终是最新的
     return true;
   } catch(e) {
     setSyncStatus('error', T('保存失败','Save failed')); state.wsSaving = false; console.error(e); return false;
   }
+}
+
+// 主文件里的外部项目只留壳（docs/tasks 清空，external 保留）；
+// _loaded 是内存标记，哪个文件都不写进去。
+function wsMainPayload() {
+  return {
+    _meta: state.ws._meta,
+    projects: (state.ws.projects || []).map(p => {
+      if (!p.external) return p;
+      const { docs, tasks, _loaded, ...shell } = p;
+      return { ...shell, docs: [], tasks: [] };
+    })
+  };
+}
+
+async function wsSaveExt(p, _retrying = false) {
+  const file = p.external;
+  const rec = state.wsExt[file] = state.wsExt[file] || {};
+  const cur = JSON.stringify({ docs: p.docs || [], tasks: p.tasks || [] });
+  if (rec.snapshot === cur) return true;          // 没改就不写，省一个空提交
+  const { _loaded, ...proj } = p;
+  const payload = { _meta: { version: '1.0', last_updated: new Date().toISOString() }, project: proj };
+  const { owner, repo } = state.settings;
+  const body = { message: `Update ${file} - ${new Date().toLocaleString('zh-CN')}`,
+                 content: b64Encode(JSON.stringify(payload, null, 1)),
+                 ...(rec.sha ? { sha: rec.sha } : {}) };
+  const r = await githubPut(`/repos/${owner}/${repo}/contents/${file}`, body);
+  if ((r.status === 409 || r.status === 422) && !_retrying) {
+    const rf = await githubGet(`/repos/${owner}/${repo}/contents/${file}`);
+    rec.sha = rf.ok ? (await rf.json()).sha : null;
+    return wsSaveExt(p, true);
+  }
+  if (!r.ok) { setSyncStatus('error', T('归档保存失败','Archive save failed')); return false; }
+  rec.sha = (await r.json()).content.sha; rec.snapshot = cur;
+  return true;
 }
 
 function wsScheduleSave() {
@@ -2449,6 +2518,11 @@ function wsRender() {
     <div class="ws-tabs">${tabs.map(([k,l]) => `<button class="ws-tab ${state.wsTab===k?'active':''}" onclick="wsSetTab('${k}')">${l}</button>`).join('')}</div>
     <div id="ws-view"></div>`;
   const v = document.getElementById('ws-view');
+  if (p.external && !p._loaded) {          // 壳还没展开：占位，拉完自然重绘
+    v.innerHTML = `<div class="ws-empty"><div class="big">📦</div><p>${T('正在载入归档…','Loading archive…')}</p></div>`;
+    wsLoadExt(p).then(ok => { if (ok) wsRender(); });
+    return;
+  }
   if (state.wsTab === 'docs') wsRenderDocs(v, p);
   else if (state.wsTab === 'export') wsRenderExport(v, p);
   else wsRenderTasks(v, p);
