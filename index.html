@@ -2731,6 +2731,9 @@ function wsRenderDocs(el, p) {
                ${wsInDeliv(d.id) ? '✓ '+T('已在交付','In delivery') : '📤 '+T('放入交付','Publish')}</button>
              <button class="ws-btn" onclick="wsEditDoc()">✎ ${T('编辑','Edit')}</button>
              <button class="ws-btn" onclick="wsRenameDoc()">🏷 ${T('改名','Rename')}</button>
+             ${wsIsArchive(p)
+               ? `<button class="ws-btn" onclick="wsUnarchiveDoc()">↩ ${T('取回','Restore')}</button>`
+               : `<button class="ws-btn" onclick="wsArchiveDoc()">📦 ${T('归档','Archive')}</button>`}
              <button class="ws-btn ghost" onclick="wsDeleteDoc()">${T('删除','Delete')}</button>`}
       </div>
       ${editing
@@ -2756,6 +2759,62 @@ function wsNewDoc() {
   p.docs.push({ id, group, title, body:'', updatedAt:new Date().toISOString() });
   state.wsDoc = id; state.wsDocEditing = true; wsScheduleSave(); wsRender();
 }
+// ---------- 归档 / 取回 ----------
+// 归档 ≠ 删除：文档搬进「<项目名> · 归档」这个独立项目，主项目的列表从此看不到它。
+// 归档项目是外部文件（点开才加载），所以主文件不会被归档撑大。
+// 命令行同款：wanderpaw/归档文档.py（同一套 archivedFrom 语义，两边可互相取回）。
+const WS_ARCH_SUFFIX = ' · 归档';
+function wsIsArchive(p) { return !!(p && p.name && p.name.endsWith(WS_ARCH_SUFFIX)); }
+function wsArchiveOf(p) {
+  const nm = p.name + WS_ARCH_SUFFIX;
+  return (state.ws.projects || []).find(x => x.name === nm) || null;
+}
+function wsMainOf(ap) {
+  const nm = ap.name.slice(0, -WS_ARCH_SUFFIX.length);
+  return (state.ws.projects || []).find(x => x.name === nm) || null;
+}
+// 壳（external 且未加载）必须先展开再往里搬。否则 p.docs 在内存里只有刚搬进去的这一条，
+// 而 wsSave 又只保存 _loaded 的外部项目——文档会从主项目消失且没写进归档文件，直接丢。
+async function wsExpand(p) {
+  if (!p.external || p._loaded) return true;
+  const ok = await wsLoadExt(p);
+  if (!ok) alert(T('归档文件没读出来，这次不搬，先看同步状态。','Archive file failed to load; nothing moved.'));
+  return ok;
+}
+async function wsArchiveDoc() {
+  const p = wsProj(); if (!p || wsIsArchive(p)) return;
+  const d = (p.docs || []).find(x => x.id === state.wsDoc); if (!d) return;
+  if (!confirm(T(`把《${d.title}》归档？\n\n它会搬进「${p.name}${WS_ARCH_SUFFIX}」，主项目里不再显示。\n不是删除，随时可以取回。`,
+                 `Archive "${d.title}"? It moves to "${p.name}${WS_ARCH_SUFFIX}". Not a delete — restorable anytime.`))) return;
+  let ap = wsArchiveOf(p);
+  if (!ap) {
+    ap = { id: 'p_' + Date.now().toString(36), name: p.name + WS_ARCH_SUFFIX, nameEn: p.name + ' (Archive)',
+           desc: T('从主项目搬出来的文档。只搬不删，随时可取回。','Docs moved out of the main project. Restorable anytime.'),
+           createdAt: new Date().toISOString(),
+           external: 'writing-workspace-archive-' + p.id + '.json',
+           docs: [], tasks: [], _loaded: true };
+    state.ws.projects.push(ap);
+  } else if (!await wsExpand(ap)) return;
+  d.archivedFrom = d.group; d.group = T('归档','Archive');
+  p.docs.splice(p.docs.indexOf(d), 1);
+  (ap.docs = ap.docs || []).push(d);
+  state.wsDoc = (p.docs[0] || {}).id || null;
+  wsScheduleSave(); wsRender();
+}
+async function wsUnarchiveDoc() {
+  const ap = wsProj(); if (!ap || !wsIsArchive(ap)) return;
+  const d = (ap.docs || []).find(x => x.id === state.wsDoc); if (!d) return;
+  const mp = wsMainOf(ap);
+  if (!mp) { alert(T('找不到它原来的项目（可能改过名），没取回。','Original project not found; nothing moved.')); return; }
+  if (!await wsExpand(ap)) return;
+  d.group = d.archivedFrom || ((mp.docs || [])[0] || {}).group || T('未分组','Ungrouped');
+  delete d.archivedFrom;
+  ap.docs.splice(ap.docs.indexOf(d), 1);
+  (mp.docs = mp.docs || []).push(d);
+  state.wsDoc = (ap.docs[0] || {}).id || null;
+  wsScheduleSave(); wsRender();
+}
+
 // 改文档本身的名字。若这份文档已放入交付、且没在交付里单独改过名，交付里的名字跟着改。
 function wsRenameDoc() {
   const p = wsProj(); const d = (p.docs || []).find(x => x.id === state.wsDoc); if (!d) return;
