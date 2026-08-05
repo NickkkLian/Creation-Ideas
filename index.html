@@ -1887,7 +1887,7 @@ function renderBatchMoveModal() {
     <div class="modal" onclick="event.stopPropagation()" style="max-width:460px">
       <div class="modal-header">
         <div class="modal-title">${T(`移动 ${count} 条条目到...`,`Move ${count} item(s) to...`)}</div>
-        <button class="modal-close" onclick="closeAllModals()">×</button>
+        <button aria-label="关闭" class="modal-close" onclick="closeAllModals()">×</button>
       </div>
       <div class="modal-body">
         <div class="dest-grid">
@@ -3573,7 +3573,7 @@ function openDetail(id, stage) {
           <div class="detail-breadcrumb">${catLab}${subLab ? ' › ' + subLab : ''} › ${stageLabel}</div>
           <div class="modal-title">${escHtml(item.title || T('无标题','Untitled'))}</div>
         </div>
-        <button class="modal-close" onclick="closeAllModals()">×</button>
+        <button aria-label="关闭" class="modal-close" onclick="closeAllModals()">×</button>
       </div>
       <div class="detail-body">
         ${imgSection}
@@ -3689,7 +3689,7 @@ function showItemModal(item, stage) {
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-header">
         <div class="modal-title">${isEdit ? T('编辑条目','Edit item') : T('新增条目','New item')}</div>
-        <button class="modal-close" onclick="closeAllModals()">×</button>
+        <button aria-label="关闭" class="modal-close" onclick="closeAllModals()">×</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -3854,7 +3854,7 @@ function confirmDelete(id, stage) {
     <div class="modal confirm-modal" onclick="event.stopPropagation()">
       <div class="modal-header">
         <div class="modal-title">${T('确认删除','Confirm delete')}</div>
-        <button class="modal-close" onclick="closeAllModals()">×</button>
+        <button aria-label="关闭" class="modal-close" onclick="closeAllModals()">×</button>
       </div>
       <div class="confirm-text">${T(`确定要删除「${title}」吗？此操作不可撤销。`,`Delete “${title}”? This cannot be undone.`)}</div>
       <div class="modal-footer">
@@ -3954,7 +3954,7 @@ function renderLyrics() {
         <span class="lyr-group-tools">
           ${aiBtn}
           <button class="card-action" onclick="renameLyricGroup('${g.id}')">${T('改名','Rename')}</button>
-          <button class="card-action danger" onclick="confirmDeleteLyricGroup('${g.id}')">✕</button>
+          <button aria-label="${T('删除这个歌词组','Delete lyric group')}" class="card-action danger" onclick="confirmDeleteLyricGroup('${g.id}')">✕</button>
         </span>
       </div>
       <div class="lyr-ai-err" id="lyrerr-${g.id}"></div>
@@ -4009,7 +4009,7 @@ function showLyricModal(existingId) {
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-header">
         <div class="modal-title">${item ? T('✎ 编辑歌词','✎ Edit lyric') : T('🎼 收藏歌词','🎼 Add lyric')}</div>
-        <button class="modal-close" onclick="closeAllModals()">×</button>
+        <button aria-label="关闭" class="modal-close" onclick="closeAllModals()">×</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -4099,7 +4099,7 @@ function confirmDeleteLyric(id) {
   document.getElementById('modal-root').innerHTML = `
   <div class="modal-overlay" onclick="closeModal(event)">
     <div class="modal confirm-modal" onclick="event.stopPropagation()">
-      <div class="modal-header"><div class="modal-title">${T('确认删除','Confirm delete')}</div><button class="modal-close" onclick="closeAllModals()">×</button></div>
+      <div class="modal-header"><div class="modal-title">${T('确认删除','Confirm delete')}</div><button aria-label="${T('关闭','Close')}" class="modal-close" onclick="closeAllModals()">×</button></div>
       <div class="confirm-text">${T(`删除这条歌词「${brief}」？此操作不可撤销。`,`Delete lyric “${brief}”? This cannot be undone.`)}</div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeAllModals()">${T('取消','Cancel')}</button>
@@ -4122,7 +4122,7 @@ function renameLyricGroup(id) {
   document.getElementById('modal-root').innerHTML = `
   <div class="modal-overlay" onclick="closeModal(event)">
     <div class="modal confirm-modal" onclick="event.stopPropagation()">
-      <div class="modal-header"><div class="modal-title">${g ? T('✎ 重命名分组','✎ Rename group') : T('＋ 新建分组','＋ New group')}</div><button class="modal-close" onclick="closeAllModals()">×</button></div>
+      <div class="modal-header"><div class="modal-title">${g ? T('✎ 重命名分组','✎ Rename group') : T('＋ 新建分组','＋ New group')}</div><button aria-label="${T('关闭','Close')}" class="modal-close" onclick="closeAllModals()">×</button></div>
       <div class="modal-body">
         <div class="form-group">
           <label class="form-label">${T('分组名（如：夏天的意象 / 叙事反转 / 副歌钩子）','Group name (e.g. summer imagery / narrative twists)')}</label>
@@ -4160,7 +4160,7 @@ function confirmDeleteLyricGroup(id) {
   document.getElementById('modal-root').innerHTML = `
   <div class="modal-overlay" onclick="closeModal(event)">
     <div class="modal confirm-modal" onclick="event.stopPropagation()">
-      <div class="modal-header"><div class="modal-title">${T('删除分组','Delete group')}</div><button class="modal-close" onclick="closeAllModals()">×</button></div>
+      <div class="modal-header"><div class="modal-title">${T('删除分组','Delete group')}</div><button aria-label="${T('关闭','Close')}" class="modal-close" onclick="closeAllModals()">×</button></div>
       <div class="confirm-text">${T(`删除分组「${escHtml(g.name)}」？组里的 ${n} 条歌词不会被删除（会回到未分组或留在其它分组），但该组的 AI 分析会一并删除。`,`Delete group “${escHtml(g.name)}”? Its ${n} lyrics are kept (moved to Ungrouped or stay in other groups); the group's AI analysis is removed.`)}</div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeAllModals()">${T('取消','Cancel')}</button>
@@ -4270,7 +4270,7 @@ function showSettings() {
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-header">
         <div class="modal-title">${T('⚙ 设置 GitHub 同步','⚙ GitHub Sync Settings')}</div>
-        <button class="modal-close" onclick="closeAllModals()">×</button>
+        <button aria-label="关闭" class="modal-close" onclick="closeAllModals()">×</button>
       </div>
       <div class="modal-body">
         <div class="settings-warning">
