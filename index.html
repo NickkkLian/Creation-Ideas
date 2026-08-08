@@ -1056,7 +1056,21 @@ body.zone-writing #stage-area, body.zone-writing #batch-bar { display: none !imp
 .ws-sgroup > .ws-sg-title {
   font-size: .78rem; font-weight: 700; color: var(--w-tx3); letter-spacing: .04em;
   padding: 6px 8px; text-transform: none;
+  display: flex; align-items: center; gap: 4px;
 }
+.ws-sg-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 分组操作默认不显示——侧栏本来就窄，四个按钮常驻会盖过文档名。悬停/键盘聚焦时才出来。 */
+.ws-sg-ops { display: flex; gap: 2px; opacity: 0; transition: opacity .12s; flex: none; }
+.ws-sg-title:hover .ws-sg-ops, .ws-sg-ops:focus-within { opacity: 1; }
+.ws-sg-ops button {
+  border: none; background: none; cursor: pointer; padding: 1px 3px; border-radius: 4px;
+  font-size: .74rem; line-height: 1; color: var(--w-tx3); font-family: inherit;
+}
+.ws-sg-ops button:hover:not(:disabled) { background: var(--w-surf3); color: var(--w-tx1); }
+.ws-sg-ops button:disabled { opacity: .25; cursor: default; }
+.ws-sg-empty { font-size: .78rem; color: var(--w-tx3); padding: 4px 8px 6px 14px; font-style: italic; }
+/* 触屏没有 hover，操作按钮会永远出不来 —— 这类设备直接常驻 */
+@media (hover: none) { .ws-sg-ops { opacity: 1; } }
 .ws-slink {
   display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
   font-family: inherit; font-size: .86rem; cursor: pointer;
@@ -2711,11 +2725,23 @@ function wsRenderDocs(el, p) {
     return;
   }
   if (!state.wsDoc || !docs.find(d => d.id === state.wsDoc)) state.wsDoc = docs[0].id;
-  const groups = [];
-  for (const d of docs) if (!groups.includes(d.group)) groups.push(d.group);
-  const side = groups.map(g => `<div class="ws-sgroup"><div class="ws-sg-title">${escHtml(g)}</div>
-      ${docs.filter(d => d.group === g).map(d => `<button class="ws-slink ${state.wsDoc===d.id?'active':''}" onclick="wsOpenDoc('${d.id}')">${escHtml(d.title)}</button>`).join('')}
-    </div>`).join('') + `<button class="ws-slink" onclick="wsNewDoc()" style="color:var(--w-ac2)">＋ ${T('新建文档','New doc')}</button>`;
+  const groups = wsGroups(p);
+  const last = groups.length - 1;
+  const side = groups.map((g, gi) => `<div class="ws-sgroup">
+      <div class="ws-sg-title">
+        <span class="ws-sg-name">${escHtml(g)}</span>
+        <span class="ws-sg-ops">
+          <button title="${T('上移','Move up')}" onclick="wsMoveGroup(${gi},-1)" ${gi===0?'disabled':''}>↑</button>
+          <button title="${T('下移','Move down')}" onclick="wsMoveGroup(${gi},1)" ${gi===last?'disabled':''}>↓</button>
+          <button title="${T('改名','Rename')}" onclick="wsRenameGroup(${gi})">✎</button>
+          <button title="${T('删除分组','Delete group')}" onclick="wsDeleteGroup(${gi})">✕</button>
+        </span>
+      </div>
+      ${docs.filter(d => d.group === g).map(d => `<button class="ws-slink ${state.wsDoc===d.id?'active':''}" onclick="wsOpenDoc('${d.id}')">${escHtml(d.title)}</button>`).join('')
+        || `<div class="ws-sg-empty">${T('（空分组）','(empty)')}</div>`}
+    </div>`).join('')
+    + `<button class="ws-slink" onclick="wsNewDoc()" style="color:var(--w-ac2)">＋ ${T('新建文档','New doc')}</button>`
+    + `<button class="ws-slink" onclick="wsNewGroup()" style="color:var(--w-ac2)">＋ ${T('新建分组','New group')}</button>`;
   const d = docs.find(x => x.id === state.wsDoc);
   const editing = state.wsDocEditing;
   el.innerHTML = `<div class="ws-body">
@@ -2731,6 +2757,7 @@ function wsRenderDocs(el, p) {
                ${wsInDeliv(d.id) ? '✓ '+T('已在交付','In delivery') : '📤 '+T('放入交付','Publish')}</button>
              <button class="ws-btn" onclick="wsEditDoc()">✎ ${T('编辑','Edit')}</button>
              <button class="ws-btn" onclick="wsRenameDoc()">🏷 ${T('改名','Rename')}</button>
+             <button class="ws-btn" onclick="wsMoveDocGroup()">📁 ${T('移到分组','Move')}</button>
              ${wsIsArchive(p)
                ? `<button class="ws-btn" onclick="wsUnarchiveDoc()">↩ ${T('取回','Restore')}</button>`
                : `<button class="ws-btn" onclick="wsArchiveDoc()">📦 ${T('归档','Archive')}</button>`}
@@ -2757,6 +2784,7 @@ function wsNewDoc() {
   p.docs = p.docs || [];
   const id = 'd_' + Date.now().toString(36);
   p.docs.push({ id, group, title, body:'', updatedAt:new Date().toISOString() });
+  wsSyncGroups(p);          // 新组要登记进 docGroups，否则它的顺序活不过一次刷新
   state.wsDoc = id; state.wsDocEditing = true; wsScheduleSave(); wsRender();
 }
 // ---------- 归档 / 取回 ----------
@@ -2830,6 +2858,93 @@ function wsDeleteDoc() {
   const p = wsProj(); const d = (p.docs||[]).find(x => x.id === state.wsDoc); if (!d) return;
   if (!confirm(T('删除文档「','Delete doc "') + d.title + T('」？不可撤销。','"? This cannot be undone.'))) return;
   p.docs = p.docs.filter(x => x.id !== d.id); state.wsDoc = null; wsScheduleSave(); wsRender();
+}
+
+// ---------- 分组管理 ----------
+// 分组原先是「从 docs 的 group 字段推出来的」，所以空分组存不住、顺序也存不住。
+// 这里加一个可选的有序数组 p.docGroups 作为**顺序与空分组的载体**，
+// 但**不把它当唯一真相**：docs 里出现过、而 docGroups 没列的组名照样显示（追加在后）。
+// 这样老数据（没有 docGroups）行为完全不变，也不会因为它漏了一项就让文档从侧栏消失。
+function wsGroups(p) {
+  const listed = Array.isArray(p.docGroups) ? p.docGroups.slice() : [];
+  const out = listed.filter(g => typeof g === 'string' && g !== '');
+  for (const d of (p.docs || [])) if (!out.includes(d.group)) out.push(d.group);
+  return out;
+}
+// 落盘前把当前顺序写回去。任何改动分组的操作都要调它，否则顺序活不过一次刷新。
+function wsSyncGroups(p) { p.docGroups = wsGroups(p); }
+
+function wsNewGroup() {
+  const p = wsProj(); if (!p) return;
+  const name = prompt(T('新分组名称','New group name'));
+  if (name === null) return;
+  const t = name.trim(); if (!t) return;
+  if (wsGroups(p).includes(t)) { alert(T('已经有同名分组了。','That group already exists.')); return; }
+  wsSyncGroups(p); p.docGroups.push(t);
+  wsScheduleSave(); wsRender();
+}
+
+function wsRenameGroup(gi) {
+  const p = wsProj(); if (!p) return;
+  const gs = wsGroups(p); const old = gs[gi]; if (old === undefined) return;
+  const name = prompt(T('分组名称','Group name'), old);
+  if (name === null) return;
+  const t = name.trim(); if (!t || t === old) return;
+  if (gs.includes(t)) { alert(T('已经有同名分组了。要合并请把文档逐份移过去。',
+                               'That group already exists. To merge, move the docs over instead.')); return; }
+  // 组名是写在每份文档上的，改名＝把这一组里所有文档的 group 一起改
+  let n = 0;
+  for (const d of (p.docs || [])) if (d.group === old) { d.group = t; n++; }
+  wsSyncGroups(p);
+  p.docGroups[p.docGroups.indexOf(old)] = t;
+  wsScheduleSave(); wsRender();
+}
+
+function wsDeleteGroup(gi) {
+  const p = wsProj(); if (!p) return;
+  const gs = wsGroups(p); const g = gs[gi]; if (g === undefined) return;
+  const inside = (p.docs || []).filter(d => d.group === g);
+  if (inside.length) {
+    // 有文档的分组不直接删——先问搬到哪儿去，避免「删了分组文档也跟着不见」
+    const others = gs.filter(x => x !== g);
+    if (!others.length) { alert(T('这是唯一的分组，删不了。先新建一个分组再搬。',
+                                  'This is the only group. Create another one first.')); return; }
+    const to = prompt(T(`「${g}」里还有 ${inside.length} 份文档。要把它们移到哪个分组？\n\n可选：`,
+                        `"${g}" still has ${inside.length} doc(s). Move them to which group?\n\nOptions: `) + others.join(' / '),
+                      others[0]);
+    if (to === null) return;
+    const t = to.trim();
+    if (!others.includes(t)) { alert(T('没有这个分组，没动。','No such group; nothing moved.')); return; }
+    for (const d of inside) d.group = t;
+  } else if (!confirm(T(`删除空分组「${g}」？`, `Delete empty group "${g}"?`))) return;
+  wsSyncGroups(p);
+  p.docGroups = p.docGroups.filter(x => x !== g);
+  wsScheduleSave(); wsRender();
+}
+
+function wsMoveGroup(gi, dir) {
+  const p = wsProj(); if (!p) return;
+  wsSyncGroups(p);
+  const j = gi + dir;
+  if (j < 0 || j >= p.docGroups.length) return;
+  const a = p.docGroups;
+  [a[gi], a[j]] = [a[j], a[gi]];
+  wsScheduleSave(); wsRender();
+}
+
+// 把当前打开的这份文档移到别的分组。也允许输入一个新名字，当场建组。
+function wsMoveDocGroup() {
+  const p = wsProj(); if (!p) return;
+  const d = (p.docs || []).find(x => x.id === state.wsDoc); if (!d) return;
+  const gs = wsGroups(p);
+  const to = prompt(T(`把《${d.title}》移到哪个分组？\n\n现有：`, `Move "${d.title}" to which group?\n\nExisting: `)
+                    + gs.join(' / ') + T('\n\n（输入一个新名字即新建分组）','\n\n(type a new name to create one)'),
+                    d.group);
+  if (to === null) return;
+  const t = to.trim(); if (!t || t === d.group) return;
+  d.group = t; d.updatedAt = new Date().toISOString();
+  wsSyncGroups(p);
+  wsScheduleSave(); wsRender();
 }
 
 // ---------- 精简 Markdown 渲染 ----------
